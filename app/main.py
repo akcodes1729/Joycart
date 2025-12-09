@@ -1,3 +1,4 @@
+#own
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -17,7 +18,4 @@ def login():
 @app.get("/register")
 def register():
     return FileResponse("static/register.html")
-@app.get("/dashboard")
-def dashboard():
-    return FileResponse("static/dashboard.html")
 

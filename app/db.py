@@ -1,3 +1,4 @@
+#own
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -16,4 +17,3 @@ def get_db():
         yield db
     finally:
         db.close()
-        
