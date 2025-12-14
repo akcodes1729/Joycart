@@ -26,8 +26,11 @@ def register():
 def dashboard():
     return FileResponse("templates/dashboard.html")
 @app.get('/checkout')
-def checkout(user = Depends(get_current_user)):
+def checkout():
     return FileResponse("templates/checkout.html")
+@app.get('/product')
+def product():
+    return FileResponse("templates/product.html")
 @app.get("/favicon.ico")#added to remove favicon error
 def favicon():
     return ""

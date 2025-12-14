@@ -5,13 +5,12 @@ function isTokenExpired(token) {
       const now = Math.floor(Date.now() / 1000);
       return payload.exp <= now;
     } catch (e) {
-      return true; // treat invalid token as expired
+      return true;
     }
   }
 
   const token = localStorage.getItem("access_token");
 
-  // 🔐 HARD BLOCK
   if (!token || isTokenExpired(token)) {
     console.log("No token or expired token → redirecting");
     localStorage.removeItem("access_token");
@@ -288,7 +287,7 @@ function isTokenExpired(token) {
 											</div>
 											<div class="product-body">
 												<p class="product-category">Category</p>
-												<h3 class="product-name"><a href="#">product name goes here</a></h3>
+												<h3 class="product-name"><a href="/product">product name goes here</a></h3>
 												<h4 class="product-price">$980.00 <del class="product-old-price">$990.00</del></h4>
 												<div class="product-rating">
 													<i class="fa fa-star"></i>

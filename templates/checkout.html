@@ -1,3 +1,22 @@
+<script>
+function isTokenExpired(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp <= now;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  const token = localStorage.getItem("access_token");
+
+  if (!token || isTokenExpired(token)) {
+    console.log("No token or expired token → redirecting");
+    localStorage.removeItem("access_token");
+    window.location.replace("/login");
+  }
+</script>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -40,8 +59,8 @@
 						<!-- LOGO -->
 						<div class="col-md-3">
 							<div class="header-logo">
-								<a href="#" class="logo">
-									<img src="./img/logo.png" alt="">
+								<a href="/dashboard" class="logo">
+									<img src="static/img/logo.png" alt="">
 								</a>
 							</div>
 						</div>
@@ -87,7 +106,7 @@
 										<div class="cart-list">
 											<div class="product-widget">
 												<div class="product-img">
-													<img src="./img/product01.png" alt="">
+													<img src="static/img/product01.png" alt="">
 												</div>
 												<div class="product-body">
 													<h3 class="product-name"><a href="#">product name goes here</a></h3>
@@ -98,7 +117,7 @@
 
 											<div class="product-widget">
 												<div class="product-img">
-													<img src="./img/product02.png" alt="">
+													<img src="static/img/product02.png" alt="">
 												</div>
 												<div class="product-body">
 													<h3 class="product-name"><a href="#">product name goes here</a></h3>
@@ -495,12 +514,12 @@
 		<!-- /FOOTER -->
 
 		<!-- jQuery Plugins -->
-		<script src="js/jquery.min.js"></script>
-		<script src="js/bootstrap.min.js"></script>
-		<script src="js/slick.min.js"></script>
-		<script src="js/nouislider.min.js"></script>
-		<script src="js/jquery.zoom.min.js"></script>
-		<script src="js/main.js"></script>
+		<script src="static/js/jquery.min.js"></script>
+		<script src="static/js/bootstrap.min.js"></script>
+		<script src="static/js/slick.min.js"></script>
+		<script src="static/js/nouislider.min.js"></script>
+		<script src="static/js/jquery.zoom.min.js"></script>
+		<script src="static/js/main.js"></script>
 
 	</body>
 </html>
