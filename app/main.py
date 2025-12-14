@@ -23,7 +23,7 @@ def login():
 def register():
     return FileResponse("templates/register.html")
 @app.get('/dashboard')
-def dashboard(user = Depends(get_current_user)):
+def dashboard():
     return FileResponse("templates/dashboard.html")
 @app.get('/checkout')
 def checkout(user = Depends(get_current_user)):

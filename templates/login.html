@@ -8,9 +8,26 @@
     <link rel="stylesheet" href = "/static/css/login.css"/>
 </head>
 <script>
+    function isTokenValid(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp && payload.exp > now;
+    } catch (e) {
+      return false;
+    }
+  }
+
   const token = localStorage.getItem("access_token");
-  if (token && location.pathname !== "/dashboard") {
+
+  if (token && isTokenValid(token)) {
+    // logged in & token not expired
+    if (location.pathname !== "/dashboard") {
       window.location.replace("/dashboard");
+    }
+  } else {
+    // token missing or expired → clean it
+    localStorage.removeItem("access_token");
   }
 </script>
 <body>

@@ -1,7 +1,21 @@
 <script>
+function isTokenExpired(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp <= now;
+    } catch (e) {
+      return true; // treat invalid token as expired
+    }
+  }
+
   const token = localStorage.getItem("access_token");
-  if (!token) {
-      window.location.replace("/");
+
+  // 🔐 HARD BLOCK
+  if (!token || isTokenExpired(token)) {
+    console.log("No token or expired token → redirecting");
+    localStorage.removeItem("access_token");
+    window.location.replace("/login");
   }
 </script>
 <!DOCTYPE html>
