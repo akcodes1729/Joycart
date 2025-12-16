@@ -1,13 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Register — Joykart</title>
-  <link rel="stylesheet" href = "/static/css/register.css"/>
-</head>
 <script>
-  function isTokenValid(token) {
+    function isTokenValid(token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const now = Math.floor(Date.now() / 1000);
@@ -29,40 +21,46 @@
     localStorage.removeItem("access_token");
   }
 </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joycart Register</title>
+    <link rel = 'stylesheet' href=" static/css/login-register.css">
+</head>
 <body>
-    
-  <div class="card" role="main" aria-labelledby="reg-title">
-    <h1 id="reg-title">Create your account</h1>
-    <p class="lead">Join Joykart to buy stuffs at low price.</p>
+    <div class="card">
+        <h1>Create your account</h1>
+        <p class="lead">Shop at lowest price!!</p>
 
-    <form id="register-form" aria-describedby="msg" novalidate>
-      <div class="grid">
-        <div>
-          <label for="username">Username</label>
-          <input id="username" name="username" placeholder="Choose a username" required />
-        </div>
+        <form id="register-form" autocomplete="off">
+            <div class="flex-wrapper"> 
+                <div>
+                    <label for="username">Username</label>
+                    <input id="username" name="username_reg" placeholder="Enter your username" autocomplete="off"/>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" name="email_reg" placeholder="Enter your email" autocomplete="off"/>
+                </div>
 
-        <div>
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="you@example.com" required />
-        </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input id="password" name="password_reg" type="password" placeholder="••••••••" autocomplete="new-password"/>
+                </div>
 
-        <div>
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Create a password" required />
-        </div>
+                <button class="primary-button" type="submit">Register</button>
+            </div>
 
-        <button class="primary" type="submit">Create Account</button>
-      </div>
+            <div class="footer">
+                Already have an account?
+                <a href="/login">Login</a>
+            </div>
 
-      <div class="footer">
-        Already have an account?
-        <a href="/login" aria-label="Go to login">Login</a>
-      </div>
-
-      <div id="msg" role="status" aria-live="polite"></div>
-    </form>
-  </div>
-  <script src = '/static/js/register.js'></script>
+            <div id="msg"></div>
+        </form>
+    </div>
+    <script src="/static/js/register.js"></script>
 </body>
 </html>
