@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         setMsg('success', 'Registration successful! Redirecting…');
-        setTimeout(() => { location.href = '/'; }, 700);
+        setTimeout(() => { location.href = '/login'; }, 700);
         return;
       }
 
