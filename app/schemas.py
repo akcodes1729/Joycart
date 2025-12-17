@@ -15,7 +15,7 @@ class UserOut(BaseModel):
     email: str
 
     class Config:
-        from_attributes = True
+        orm_attributes = True
 
 class LoginSchema(BaseModel):
     username: str
@@ -33,6 +33,9 @@ class OrderOut(BaseModel):
     status:str
     currency: str
     created_at:datetime
+    expires_at: datetime 
+    class Config:
+        orm_attributes = True
 
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -44,4 +47,14 @@ class OrderItemOut(BaseModel):
     product_id: int
     quantity: int
     price_at_purchase: float
+
+class PaymentOut(BaseModel):
+    id: int
+    order_id: int
+    status: str
+    gateway: str
+    gateway_payment_id:str
+    created_at:datetime
+    class Config:
+        orm_attributes = True
 
