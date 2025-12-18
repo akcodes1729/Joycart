@@ -6,7 +6,7 @@ from app.db import get_db
 from app.models import Product
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="templates")
 
 @router.get("/product/{product_id}")
 def product_page(
