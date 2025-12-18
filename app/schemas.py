@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, constr
 from typing import Optional
 from datetime import datetime
 
+
 #user create schema 
 class UserCreate(BaseModel):
     username: str
@@ -37,15 +38,20 @@ class ProductCreate(BaseModel):
     description : str
     category : str
     price : float
-    discount_percentage : float
+    discountPercentage : float
     stock :int
-    brand : str
+    brand : Optional[str] = None
     weight : int
     warranty : str
     availability : str
     return_policy : str
     thumbnail : str
     images : list[str]
+
+class DimensionSchema(BaseModel):
+    width: float
+    height: float
+    depth: float
 
 class ProductOut(BaseModel):
 
@@ -54,24 +60,19 @@ class ProductOut(BaseModel):
     description : str
     category : str
     price : float
-    discount_percentage : float
+    discountPercentage : float
     rating : float
     stock :int
-    brand : str
+    brand : Optional[str] = None
     sku : str
     weight : int
-    warranty : str
-    shipping_info:str
-    availability : str
-    return_policy : str
+    dimensions : DimensionSchema
+    warrantyInformation : str
+    shippingInformation : str
+    availabilityStatus : str
+    returnPolicy : str
     thumbnail : str
     images : list[str] 
-
-class Cart(BaseModel):
-    id:int
-    user_id:int
-    created_at:datetime
-    updated_at:datetime
 
 
 class CartAdd(BaseModel):

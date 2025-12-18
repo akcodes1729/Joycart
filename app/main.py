@@ -8,6 +8,7 @@ from app.db import Base, engine
 from app.user import router as user_router
 from app.seller import router as seller_router
 from app.cart import router as cart_router
+from app.product import router as product_router
 
 
 Base.metadata.create_all(bind = engine)
@@ -17,6 +18,9 @@ app.mount('/static',  StaticFiles(directory='static'), name = 'static')
 app.include_router(user_router, prefix="/api")
 app.include_router(seller_router,prefix="/api")
 app.include_router(cart_router, prefix="/api")
+app.include_router(product_router, prefix="/api")
+
+
 
 templates = Jinja2Templates(directory="templates")
 
@@ -36,9 +40,9 @@ def dashboard():
 @app.get('/checkout')
 def checkout():
     return FileResponse("templates/checkout.html")
-@app.get('/product')
+@app.get('/product/{product_id}')
 def product():
-    return FileResponse("templates/product.html")
+    return FileResponse("templates/product.html)")
 @app.get('/hotdeals')
 def hotdeals():
     return FileResponse("templates/hotdeals.html")
@@ -52,7 +56,5 @@ def favicon():
 
 
 
-@app.get('/product/{product_id}')
-def product():
-    return FileResponse("templates/product.html)")
+
 

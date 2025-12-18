@@ -20,16 +20,18 @@ def populate_products():
             description=item.get("description"),
             category=item.get("category"),
             price=item.get("price"),
-            discount_percentage=item.get("discountPercentage"),
+            discountPercentage=item.get("discountPercentage"),
             rating=item.get("rating"),
             stock=item.get("stock"),
             brand=item.get("brand"),
             sku=item.get("sku"),
+            dimensions=item.get("dimensions"),
             weight=item.get("weight"),
 
-            warranty=item.get("warrantyInformation"),
-            availability=item.get("availabilityStatus"),
-            return_policy=item.get("returnPolicy"),
+            warrantyInformation=item.get("warrantyInformation"),
+            availabilityStatus=item.get("availabilityStatus"),
+            shippingInformation=item.get("shippingInformation"),
+            returnPolicy=item.get("returnPolicy"),
 
             thumbnail=item.get("thumbnail"),
             images = item.get("images")
