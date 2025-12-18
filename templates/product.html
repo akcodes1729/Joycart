@@ -4,145 +4,176 @@
     <meta charset="UTF-8">
     <title>{{ product.title if product else "Product" }}</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-
-    <!-- AUTH CHECK -->
-    <script>
-        function isTokenExpired(token) {
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const now = Math.floor(Date.now() / 1000);
-                return payload.exp <= now;
-            } catch (e) {
-                return true;
-            }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f6f6;
+            margin: 0;
+            padding: 0;
         }
 
-        const token = localStorage.getItem("access_token");
-        // Uncomment later if you want auth protection
-        /*
-        if (!token || isTokenExpired(token)) {
-            localStorage.removeItem("access_token");
-            window.location.replace("/login");
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
         }
-        */
-    </script>
+
+        .product {
+            display: flex;
+            gap: 30px;
+        }
+
+        .images {
+            flex: 1;
+        }
+
+        .images img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .details {
+            flex: 1;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .price {
+            font-size: 24px;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+
+        .stock {
+            font-weight: bold;
+            color: green;
+        }
+
+        .low-stock {
+            color: red;
+        }
+
+        .meta p {
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .section-title {
+            margin-top: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .add-to-cart {
+            margin-top: 20px;
+        }
+
+        .add-to-cart input {
+            width: 60px;
+            padding: 5px;
+        }
+
+        .add-to-cart button {
+            padding: 8px 14px;
+            background: #3498db;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .add-to-cart button:hover {
+            background: #2980b9;
+        }
+    </style>
 </head>
 
 <body>
 
+<div class="container">
+
 {% if product %}
 
-<!-- PRODUCT SECTION -->
-<div class="section">
-    <div class="container">
-        <div class="row">
+    <div class="product">
 
-            <!-- PRODUCT THUMBNAILS -->
-            <div class="col-md-2 col-md-pull-5">
-                <div id="product-imgs">
-                    {% for img in product.images %}
-                    <div class="product-preview">
-                        <img src="{{ img }}" alt="">
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- PRODUCT MAIN IMAGE -->
-            <div class="col-md-5 col-md-push-2">
-                <div id="product-main-img">
-                    {% for img in product.images %}
-                    <div class="product-preview">
-                        <img src="{{ img }}" alt="">
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- PRODUCT DETAILS -->
-            <div class="col-md-5">
-                <div class="product-details">
-
-                    <h2 class="product-name">{{ product.title }}</h2>
-
-                    <div>
-                        <h3 class="product-price">
-                            ₹{{ product.price }}
-                        </h3>
-
-                        <span class="product-availability">
-                            {{ product.availability }}
-                        </span>
-                    </div>
-
-                    <p>{{ product.description }}</p>
-
-                    <!-- QUANTITY -->
-                    <div class="add-to-cart">
-                        <div class="qty-label">
-                            Qty
-                            <div class="input-number">
-                                <input type="number" id="qty" min="1" value="1">
-                                <span class="qty-up">+</span>
-                                <span class="qty-down">-</span>
-                            </div>
-                        </div>
-
-                        <!-- ADD TO CART BUTTON -->
-                        <button
-                            class="add-to-cart-btn"
-                            data-product-id="{{ product.id }}">
-                            <i class="fa fa-shopping-cart"></i> add to cart
-                        </button>
-                    </div>
-
-                    <!-- PRODUCT META -->
-                    <ul class="product-links">
-                        <li>Category:</li>
-                        <li>{{ product.category }}</li>
-                    </ul>
-
-                </div>
-            </div>
-
+        <!-- IMAGES -->
+        <div class="images">
+            {% for img in product.images %}
+                <img src="{{ img }}" alt="Product image">
+            {% endfor %}
         </div>
+
+        <!-- DETAILS -->
+        <div class="details">
+            <h1>{{ product.title }}</h1>
+
+            <p class="price">₹ {{ product.price }}</p>
+
+            <p class="{% if product.stock < 5 %}low-stock{% else %}stock{% endif %}">
+                {{ product.availabilityStatus }} ({{ product.stock }} left)
+            </p>
+
+            <p>{{ product.description }}</p>
+
+            <div class="meta">
+                <p><b>Category:</b> {{ product.category }}</p>
+
+                {% if product.brand %}
+                <p><b>Brand:</b> {{ product.brand }}</p>
+                {% endif %}
+
+                {% if product.sku %}
+                <p><b>SKU:</b> {{ product.sku }}</p>
+                {% endif %}
+
+                {% if product.weight %}
+                <p><b>Weight:</b> {{ product.weight }} kg</p>
+                {% endif %}
+
+                {% if product.dimensions %}
+                <p>
+                    <b>Dimensions:</b>
+                    {{ product.dimensions.width }} ×
+                    {{ product.dimensions.height }} ×
+                    {{ product.dimensions.depth }}
+                </p>
+                {% endif %}
+
+                {% if product.warrantyInformation %}
+                <p><b>Warranty:</b> {{ product.warrantyInformation }}</p>
+                {% endif %}
+
+                {% if product.shippingInformation %}
+                <p><b>Shipping:</b> {{ product.shippingInformation }}</p>
+                {% endif %}
+
+                {% if product.returnPolicy %}
+                <p><b>Return Policy:</b> {{ product.returnPolicy }}</p>
+                {% endif %}
+            </div>
+
+            <!-- ADD TO CART -->
+            <div class="add-to-cart">
+                <input type="number" id="qty" value="1" min="1">
+                <button data-product-id="{{ product.id }}">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+
     </div>
-</div>
 
 {% else %}
-
-<div class="container">
-    <h3>Product not found</h3>
-</div>
-
+    <h2>Product not found</h2>
 {% endif %}
 
-<!-- JS -->
-<script src="/static/js/jquery.min.js"></script>
-<script src="/static/js/bootstrap.min.js"></script>
-<script src="/static/js/main.js"></script>
-
-<!-- ADD TO CART JS (placeholder) -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const btn = document.querySelector(".add-to-cart-btn");
-        if (!btn) return;
-
-        btn.addEventListener("click", function () {
-            const productId = this.dataset.productId;
-            const qty = document.getElementById("qty").value;
-
-            console.log("Add to cart:", productId, qty);
-
-            // Later:
-            // fetch("/api/cart/add", { ... })
-        });
-    });
-</script>
+</div>
 
 </body>
 </html>
