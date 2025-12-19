@@ -13,12 +13,12 @@ def add_to_cart(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # 1️⃣ Check product exists
+    
     product = db.query(Product).filter(Product.id == payload.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # 2️⃣ Get or create cart
+    
     cart = db.query(Cart).filter(Cart.user_id == current_user.id).first()
     if not cart:
         cart = Cart(user_id=current_user.id)
@@ -26,7 +26,7 @@ def add_to_cart(
         db.commit()
         db.refresh(cart)
 
-    # 3️⃣ Check if item already in cart
+    
     item = (
         db.query(CartItem)
         .filter(

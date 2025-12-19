@@ -95,4 +95,34 @@ async function removeItem(itemId) {
 
     loadCart(); 
 }
+async function checkout() {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    if (!res.ok) {
+        alert("Checkout failed");
+        return;
+    }
+
+    const data = await res.json();
+
+    alert(
+        `Order placed!\nOrder ID: ${data.order_id}\nAmount: ₹${data.amount}`
+    );
+
+    // Optional redirect
+    // window.location.href = `/orders/${data.order_id}`;
+}
+
 document.addEventListener("DOMContentLoaded", loadCart);
