@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.db import get_db
 from app.models import Cart, CartItem, Product, User
 from app.schemas import CartAdd, CartOut
 from app.auth import get_current_user
 
-router = APIRouter(prefix="/cart")
+router = APIRouter()
 
 @router.post("/add", response_model=CartOut)
 def add_to_cart(

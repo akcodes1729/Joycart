@@ -1,31 +1,44 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-
+from app.auth import get_current_user
 from app.db import get_db
-from app.models import Cart, Product
+from app.models import Cart, Product,User
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@router.get("/cart")
-def cart_page(
-    request: Request,
-    db: Session = Depends(get_db)
+@router.get("/view")
+def get_cart(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    cart = db.query(Cart).filter(Cart.user_id == current_user.id).first()
 
+    if not cart:
+        return {"items": [], "total": 0}
 
-    cart = None
     items = []
     total = 0
 
-    return templates.TemplateResponse(
-        "viewcart.html",
-        {
-            "request": request,
-            "cart": {
-                "items": items,
-                "total": total
-            }
-        }
-    )
+    for item in cart.items:
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+        if not product:
+            continue
+
+        subtotal = product.price * item.quantity
+        total += subtotal
+
+        items.append({
+            "product_id": product.id,
+            "title": product.title,
+            "price": product.price,
+            "quantity": item.quantity,
+            "subtotal": subtotal,
+            "thumbnail": product.thumbnail
+        })
+
+    return {
+        "items": items,
+        "total": total
+    }
