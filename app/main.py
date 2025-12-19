@@ -43,7 +43,7 @@ def register():
 def dashboard():
     return FileResponse("templates/dashboard.html")
 @app.get("/checkout/{order_id}")
-def checkout_page(order_id: int):
+def checkout_page():
     return FileResponse("templates/checkout.html")
 @app.get('/hotdeals')
 def hotdeals():
@@ -60,6 +60,9 @@ def orders_page():
 @app.get("/orders/{order_id}")
 def order_detail_page():
     return FileResponse("templates/orderdetails.html")
+@app.get("/payment-success/{order_id}")
+def payment_success():
+    return FileResponse("templates/payment_success.html")
 @app.get("/favicon.ico")#added to remove favicon error
 def favicon():
     return ""

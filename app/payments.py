@@ -13,7 +13,9 @@ def payment(order_id: int, db: Session = Depends(get_db)):
 
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-
+    
+    if order.status=="PAID":
+        raise HTTPException(status_code=400, detail="Already Paid")
     order.status = "PAID"
     db.commit()
 
