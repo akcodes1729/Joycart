@@ -1,0 +1,40 @@
+const token = localStorage.getItem("access_token");
+
+if (!token) {
+    window.location.href = "/login";
+}
+async function loadOrders() {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const res = await fetch("/api/orders", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const orders = await res.json();
+    const container = document.getElementById("orders");
+
+    if (orders.length === 0) {
+        container.innerHTML = "<p>No orders yet.</p>";
+        return;
+    }
+
+    orders.forEach(o => {
+        container.innerHTML += `
+            <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px">
+                <p><b>Order ID:</b> ${o.id}</p>
+                <p><b>Status:</b> ${o.status}</p>
+                <p><b>Total:</b> ₹${o.amount}</p>
+                <p><b>Date:</b> ${new Date(o.created_at).toLocaleString()}</p>
+                <a href="/orders/${o.id}">View Details</a>
+            </div>
+        `;
+    });
+}
+
+loadOrders();

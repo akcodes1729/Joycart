@@ -11,6 +11,7 @@ from app.cart import router as cart_router
 from app.viewcart import router as viewcart_router
 from app.product_page import router as product_page_router
 from app.checkout import router as checkout_router
+from app.orders import router as order_router
 
 Base.metadata.create_all(bind = engine)
 
@@ -22,7 +23,7 @@ app.include_router(cart_router,prefix="/api/cart")
 app.include_router(viewcart_router,prefix='/api/cart')
 app.include_router(product_page_router)
 app.include_router(checkout_router,prefix="/api")
-
+app.include_router(order_router,prefix="/api/orders")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -51,6 +52,12 @@ def hotdeals():
 @app.get('/cart')
 def viewcart():   
     return FileResponse("templates/viewcart.html")
+@app.get("/orders")
+def orders_page():
+    return FileResponse("templates/orders.html")
+@app.get("/orders/{order_id}")
+def order_detail_page():
+    return FileResponse("templates/orderdetails.html")
 @app.get("/favicon.ico")#added to remove favicon error
 def favicon():
     return ""

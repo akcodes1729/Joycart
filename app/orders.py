@@ -1,0 +1,77 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.db import get_db
+from app.auth import get_current_user
+from app.models import Order, OrderItems, Product
+
+router = APIRouter()
+
+@router.get("")#list all orders
+def get_orders(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    orders = (
+        db.query(Order)
+        .filter(Order.user_id == current_user.id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+    
+    return [
+        {
+            "id": o.id,
+            "amount": o.amount,
+            "currency": o.currency,
+            "status": o.status,
+            "created_at": o.created_at
+        }
+        for o in orders
+    ]
+
+
+
+@router.get("/{order_id}")#get a single order
+def get_order_details(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    order = (
+        db.query(Order)
+        .filter(
+            Order.id == order_id,
+            Order.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    items = (
+        db.query(OrderItems, Product)
+        .join(Product, Product.id == OrderItems.product_id)
+        .filter(OrderItems.order_id == order.id)
+        .all()
+    )
+
+    return {
+        "id": order.id,
+        "amount": order.amount,
+        "currency": order.currency,
+        "status": order.status,
+        "created_at": order.created_at,
+        "items": [
+            {
+                "product_id": product.id,
+                "title": product.title,
+                "price": oi.price_at_purchase,
+                "quantity": oi.quantity,
+                "subtotal": oi.price_at_purchase * oi.quantity
+            }
+            for oi, product in items
+        ]
+    }
+
