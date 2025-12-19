@@ -14,7 +14,7 @@ def checkout(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    # 1️⃣ Fetch cart
+    
     cart = (
         db.query(Cart)
         .filter(Cart.user_id == current_user.id)
@@ -27,7 +27,6 @@ def checkout(
     total_amount = 0
     order_items: list[OrderItems] = []
 
-    # 2️⃣ Calculate total + prepare order items
     for item in cart.items:
         product = (
             db.query(Product)
@@ -52,7 +51,7 @@ def checkout(
     if total_amount == 0:
         raise HTTPException(status_code=400, detail="Invalid cart")
 
-    # 3️⃣ Create order
+    
     order = Order(
         user_id=current_user.id,
         amount=total_amount,
@@ -62,14 +61,14 @@ def checkout(
     )
 
     db.add(order)
-    db.flush()  # get order.id
+    db.flush()  
 
-    # 4️⃣ Create order items
+    
     for oi in order_items:
         oi.order_id = order.id
         db.add(oi)
 
-    # 5️⃣ Clear cart
+    
     db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
 
     db.commit()
