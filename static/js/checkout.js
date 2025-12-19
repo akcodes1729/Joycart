@@ -17,5 +17,5 @@ document.getElementById("pay-btn").addEventListener("click", async () => {
     return;
     }
     alert("Payment successful");
-    window.location.href = "/orders";
+    window.location.href = `/payment-success/${orderId}`;
 });
