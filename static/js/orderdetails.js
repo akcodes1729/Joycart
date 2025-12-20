@@ -38,6 +38,9 @@ if (order.status === "PENDING") {
             <button onclick="goToCheckout(${order.id})">
                 Proceed to Checkout
             </button>
+            <button onclick="cancelOrder(${order.id})">
+                Cancel
+            </button>
         `;
     }
 }
@@ -45,5 +48,34 @@ if (order.status === "PENDING") {
 function goToCheckout(orderId) {
     window.location.href = `/checkout/${orderId}`;
 }
+async function cancelOrder(orderId) {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const confirmCancel = confirm("Are you sure you want to cancel this order?");
+    if (!confirmCancel) return;
+
+    const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.detail || "Unable to cancel order");
+        return;
+    }
+
+    alert("Order cancelled successfully");
+
+    window.location.reload();
+
+}
+
 
 loadOrder();
