@@ -21,12 +21,21 @@ async function getOrder() {
         <p><b>Total:</b> ₹${order.amount}</p>
         <hr>
     `;
+    if (order.status === "PENDING") {
+        container.innerHTML += `
+        
+            <button id = "pay-btn" onclick="payNow(${order.id})">
+                Pay Now
+            </button>
+        `;
+    }
 }
 
 
 getOrder();
-
-document.getElementById("pay-btn").addEventListener("click", async () => {
+async function payNow() {
+const btn = document.getElementById("pay-btn")
+btn.addEventListener("click", async () => {
     const res = await fetch(`/api/payments?order_id=${orderId}`, {
         method: "POST"
     });
@@ -46,4 +55,4 @@ document.getElementById("pay-btn").addEventListener("click", async () => {
     alert("Payment successful");
     window.location.href = `/payment-success/${orderId}`;
 });
-
+}
