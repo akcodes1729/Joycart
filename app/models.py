@@ -101,7 +101,7 @@ class Payment(Base):
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     amount = Column(Float, nullable=False)
-    status = Column(String, nullable=False)  # created | success | failed
+    status = Column(String, nullable=False) # success | failed
     gateway = Column(String, nullable=False)
     gateway_payment_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
