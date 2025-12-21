@@ -1,6 +1,6 @@
 # app/crud/user.py
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.auth import hash_password, verify_password, create_access_token
@@ -53,4 +53,10 @@ def login_user(payload: LoginSchema, db: Session = Depends(get_db)):
         secure=False        # True when HTTPS
     )
 
+    return response
+
+@router.post("/logout")
+def logout():
+    response = RedirectResponse("/", status_code=302)
+    response.delete_cookie("access_token")
     return response
