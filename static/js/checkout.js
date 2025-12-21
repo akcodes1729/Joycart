@@ -1,17 +1,13 @@
 const orderId = window.location.pathname.split("/").pop();
 
 async function getOrder() {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
+    const res = await fetch(`/api/orders/${orderId}`);
+
+    if (res.status === 401) {
+        
         window.location.href = "/login";
         return;
     }
-
-    const res = await fetch(`/api/orders/${orderId}`, {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
 
     if (!res.ok) {
         alert("Order not found");
@@ -43,6 +39,11 @@ async function payNow() {
     const res = await fetch(`/api/payments?order_id=${orderId}`, {
         method: "POST"
     });
+
+    if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+    }
 
     if (!res.ok) {
         const errorData = await res.json();

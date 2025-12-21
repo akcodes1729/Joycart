@@ -1,9 +1,4 @@
 async function loadOrder() {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-        window.location.href = "/login";
-        return;
-    }
     const orderId = window.location.pathname.split("/").pop();
 
     const res = await fetch(`/api/orders/${orderId}`, {

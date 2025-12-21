@@ -9,7 +9,7 @@ from app.models import User
 
 router = APIRouter()
 
-@router.post("/register", response_model=SellerOut)
+@router.post("/seller/register", response_model=SellerOut)
 def register_seller(payload: SellerCreate,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     existing_seller = (
         db.query(Seller)
