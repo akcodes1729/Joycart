@@ -1,11 +1,7 @@
 async function loadOrder() {
     const orderId = window.location.pathname.split("/").pop();
 
-    const res = await fetch(`/api/orders/${orderId}`, {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
+    const res = await fetch(`/api/orders/${orderId}`, {});
 
     const order = await res.json();
     const container = document.getElementById("order");

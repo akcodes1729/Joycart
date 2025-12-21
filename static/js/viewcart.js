@@ -94,6 +94,7 @@ async function checkout() {
     alert(
         `Order placed!\nOrder ID: ${data.order_id}\nAmount: ₹${data.amount}`
     );
+    window.location.href = `/orders/${data.order_id}`;
 }
 
 document.addEventListener("DOMContentLoaded", loadCart);
