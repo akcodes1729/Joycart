@@ -1,11 +1,11 @@
 # app/crud/user.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Form
 from fastapi.responses import JSONResponse,RedirectResponse
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.auth import hash_password, verify_password, create_access_token
 from app.models import User
-from app.schemas import UserCreate, UserOut, LoginSchema
+from app.schemas import UserCreate, UserOut
 
 router = APIRouter()
 
@@ -29,12 +29,15 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login_user(payload: LoginSchema, db: Session = Depends(get_db)):
+def login_user( username: str = Form(...),
+    password: str = Form(...), 
+    db: Session = Depends(get_db)):
+
     user = db.query(User).filter(
-        User.username == payload.username
+        User.username == username
     ).first()
 
-    if not user or not verify_password(payload.password, user.password):
+    if not user or not verify_password(password, user.password):
         return RedirectResponse(
             "/login?error=1",
             status_code=302

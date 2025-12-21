@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from fastapi import Form
 
 
 #user create schema 
@@ -28,10 +29,6 @@ class SellerOut(BaseModel):
 
     class Config:
         orm_attributes = True
-
-class LoginSchema(BaseModel):
-    username: str
-    password: str
 
 class ProductCreate(BaseModel): 
     title : str
