@@ -1,62 +1,27 @@
-<script>
-    function isTokenValid(token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const now = Math.floor(Date.now() / 1000);
-      return payload.exp && payload.exp > now;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  const token = localStorage.getItem("access_token");
-
-  if (token && isTokenValid(token)) {
-    // logged in & token not expired
-    if (location.pathname !== "/dashboard") {
-      window.location.replace("/dashboard");
-    }
-  } else {
-    // token missing or expired → clean it
-    localStorage.removeItem("access_token");
-  }
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joycart Login</title>
-    <link rel = 'stylesheet' href=" static/css/login-register.css">
 </head>
 <body>
-    <div class="card">
         <h1>Joycart Login</h1>
-        <p class="lead">Log in your joycart account</p>
+        <p>Log in your joycart account</p>
+                <form action="/api/login" method="POST">
+                    <div>
+                        <label for="username">Username</label>
+                        <input id="username" name="username" type="text" placeholder="Enter your username" required autocomplete="username" />
+                    </div>
 
-        <form id="login-form">
-            <div class="flex-wrapper"> 
-                <div>
-                    <label for="username">Username</label>
-                    <input id="username" name="username" placeholder="Enter your username" required autocomplete="username" />
-                </div>
+                    <div>
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+                    </div>
 
-                <div>
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
-                </div>
-
-                <button class="primary-button" type="submit">Login</button>
-            </div>
-
-            <div class="footer">
+                    <button type="submit">Log In</button>
+                </form>
                 Don't have an account?
                 <a href="/register">Create one</a>
-            </div>
-
-            <div id="msg"></div>
-        </form>
-    </div>
-    <script src="/static/js/login.js"></script>
 </body>
 </html>

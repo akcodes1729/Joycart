@@ -28,29 +28,31 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
 
 
 
-@router.post("/login")  #stores token in the backend instead of sending to front end
+@router.post("/login")
 def login_user(payload: LoginSchema, db: Session = Depends(get_db)):
     user = db.query(User).filter(
         User.username == payload.username
     ).first()
 
     if not user or not verify_password(payload.password, user.password):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+        return RedirectResponse(
+            "/login?error=1",
+            status_code=302
+        )
 
     token = create_access_token({"sub": user.username})
 
-    response = JSONResponse({
-        "message": "Login successful",
-        "username": user.username,
-        "email": user.email
-    })
+    response = RedirectResponse(
+        "/dashboard",
+        status_code=302
+    )
 
     response.set_cookie(
         key="access_token",
         value=token,
-        httponly=True,      # 🔐 JS cannot read it
-        samesite="lax",     # 🛡️ CSRF protection
-        secure=False        # True when HTTPS
+        httponly=True,
+        samesite="lax",
+        secure=False   
     )
 
     return response
