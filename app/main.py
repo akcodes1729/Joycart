@@ -1,7 +1,7 @@
 #own
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse,RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.auth import get_current_user
 from app.db import Base, engine
@@ -56,7 +56,13 @@ def login(request: Request):
     )
 @app.get("/register")
 def register(request: Request):
-     return templates.TemplateResponse(
+     
+    token = request.cookies.get("access_token")
+
+    if token:
+        return RedirectResponse("/dashboard", status_code=302)
+
+    return templates.TemplateResponse(
         "register.html",
         {"request": request}
     )

@@ -94,13 +94,13 @@ def logout():
     response.delete_cookie("access_token")
     return response
 
-@router.get("/account")
+@router.get("/profile")
 def account(
     request: Request,
     current_user = Depends(get_current_user)
 ):
     return templates.TemplateResponse(
-        "account.html",
+        "profile.html",
         {
             "request": request,
             "username": current_user.username,
