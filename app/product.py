@@ -1,31 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
-
+from fastapi.templating import Jinja2Templates
 from app.db import get_db
 from app.models import Product
 from app.schemas import ProductOut
 
 router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_model=list[ProductOut]) #for swagger
 def get_products(db: Session = Depends(get_db)):
     return db.query(Product).all()
 
 
-@router.get("/page")#for html
-def list_products(db: Session = Depends(get_db)): ####order matters,fast api reads top to bottom ####
-    products = db.query(Product).all()
 
-    return [
-        {
-            "id": p.id,
-            "title": p.title,
-            "price": p.price,
-            "thumbnail": p.thumbnail  
-        }
-        for p in products
-    ]
+def list_products(db: Session = Depends(get_db)):
+    return db.query(Product).all()
 
+    
 @router.get("/{product_id}", response_model=ProductOut)#for swagger
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()

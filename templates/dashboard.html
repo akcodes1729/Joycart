@@ -43,9 +43,6 @@
 <form action="/api/logout" method="post">
     <button type="submit">Logout</button>
 </form>
-<div id="products" class="grid"></div>
-
-<script src="/static/js/homepage.js"></script>
-</div>
+{% include "/products_listing.html" %}
 </body>
 </html>

@@ -1,10 +1,11 @@
 #own
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.auth import get_current_user
-from app.db import Base, engine
+from app.db import Base, engine,get_db
 from app.user import router as user_router
 from app.seller import router as seller_router
 from app.cart import router as cart_router
@@ -14,6 +15,7 @@ from app.product_page import router as product_page_router
 from app.checkout import router as checkout_router
 from app.orders import router as order_router
 from app.payments import router as payment_router
+from app.product import list_products
 
 Base.metadata.create_all(bind = engine)
 
@@ -33,16 +35,22 @@ templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/")
-def homepage(request: Request):
+def homepage(
+    request: Request,
+    db: Session = Depends(get_db)
+):
     token = request.cookies.get("access_token")
 
     if token:
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse("/dashboard")
+
+    products = list_products(db)
 
     return templates.TemplateResponse(
         "homepage.html",
-        {"request": request}
+        {"request": request, "products": products}
     )
+    
 @app.get('/login')
 def login(request: Request):
     token = request.cookies.get("access_token")
@@ -66,12 +74,19 @@ def register(request: Request):
         "register.html",
         {"request": request}
     )
+
 @app.get("/dashboard", dependencies=[Depends(get_current_user)])
-def dashboard(request: Request):
+def dashboard(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    products = list_products(db)
+
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request":request}
+        {"request": request, "products": products}
     )
+
 @app.get("/checkout/{order_id}", dependencies=[Depends(get_current_user)])
 def checkout_page(request: Request):
     return templates.TemplateResponse(
