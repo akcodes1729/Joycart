@@ -3,7 +3,7 @@ from typing import Optional
 from jose import jwt,JWTError
 import os
 from fastapi import Depends, HTTPException, status,Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from app.db import get_db
@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 JWT_SECRET=os.getenv("JWT_SECRET")
-ALGORITHM = "HS256"
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

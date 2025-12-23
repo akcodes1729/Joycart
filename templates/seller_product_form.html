@@ -29,7 +29,7 @@
 
         <br>
 
-        <!-- PRICING & AVAILABILITY -->
+        
         <fieldset>
             <legend>Pricing & Availability</legend>
 
@@ -65,7 +65,7 @@
 
         <br>
 
-        <!-- PHYSICAL DETAILS -->
+        
         <fieldset>
             <legend>Physical Details (Optional)</legend>
 
@@ -94,29 +94,23 @@
 
         <br>
 
-        <!-- MEDIA -->
+        
         <fieldset>
             <legend>Product Images</legend>
 
             <label>
                 Thumbnail URL<br>
-                <input type="url" name="thumbnail" required>
+                <input type="file" name="thumbnail" accept="image/*" required>
+
             </label><br><br>
 
             <label>
                 Image URL 1<br>
-                <input type="url" name="image1" required>
+                <input type="file" name="images" accept="image/*" multiple required>
+
             </label><br><br>
 
-            <label>
-                Image URL 2<br>
-                <input type="url" name="image2">
-            </label><br><br>
-
-            <label>
-                Image URL 3<br>
-                <input type="url" name="image3">
-            </label>
+            
         </fieldset>
 
         <br>
