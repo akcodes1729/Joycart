@@ -13,14 +13,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/seller/check")
 def seller_check(request: Request, db: Session = Depends(get_db)):
     current_user = request.state.user
-
-    existing_seller = (
-        db.query(Seller)
-        .filter(Seller.user_id == current_user.id)
-        .first()
-    )
-
-    if existing_seller:
+    if current_user.is_seller:
         return RedirectResponse("/seller/dashboard", status_code=302)
 
     return RedirectResponse("/seller/registerform", status_code=302)
@@ -33,7 +26,7 @@ def register_seller(request: Request,store_name: str = Form(...),db: Session = D
     user_id=current_user.id,
     store_name=store_name
     )
-
+    current_user.is_seller = True
     db.add(seller)
     db.commit()
     db.refresh(seller)
