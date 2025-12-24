@@ -1,8 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional,Dict, Any
 from datetime import datetime
-from fastapi import Form
-
 
 #user create schema 
 class UserCreate(BaseModel):
@@ -121,6 +119,7 @@ class CartOut(BaseModel):
 
 class OrderCreate(BaseModel):
     amount:float
+    address_id:int
 
 
 class OrderOut(BaseModel):
@@ -131,6 +130,7 @@ class OrderOut(BaseModel):
     currency: str
     created_at:datetime
     expires_at: datetime 
+    shipping_address: Dict[str, Any]
     class Config:
         orm_attributes = True
 
@@ -148,6 +148,7 @@ class OrderItemOut(BaseModel):
     quantity: int
     price_at_purchase: float
     status:str
+    created_at:datetime
 
 class PaymentOut(BaseModel):
     id: int
