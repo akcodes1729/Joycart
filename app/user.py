@@ -168,7 +168,13 @@ def add_address(current_user: User = Depends(get_current_user),
 
     return RedirectResponse("/api/profile", status_code=302)
 
-    
+@pages_router.get('/address/form')
+def add_address(request: Request):
+    return templates.TemplateResponse(
+        "address_form.html",
+        {"request":request}
+        )
+
 @pages_router.get("/addresses")
 def get_address(request:Request,current_user: User = Depends(get_current_user),db:Session=Depends(get_db)):
 
