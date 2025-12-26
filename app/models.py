@@ -1,12 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float,Boolean,JSON
 from app.db import Base
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import uuid
-
-
-
-
+from datetime import datetime,timedelta
 
 
 class User(Base):
@@ -76,6 +71,25 @@ class Product(Base):
     thumbnail = Column(String)
     images = Column(JSON, nullable=False) 
     reviews = relationship("Review", back_populates="product")
+
+class Checkout(Base):
+    __tablename__ = "checkouts"
+
+    id = Column(Integer, primary_key=True)
+    checkout_id = Column(String, unique=True, nullable=False, index=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    shipping_address = Column(JSON, nullable=True)
+    payment_method = Column(String, nullable=True)  # COD / CARD / UPI
+
+    amount = Column(Integer, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(
+        DateTime,
+        default=lambda: datetime.utcnow() + timedelta(minutes=30)
+    )    
 
 class Order(Base):
     __tablename__ = "orders"

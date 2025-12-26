@@ -226,14 +226,6 @@ def refund_order(order_id: int, db: Session = Depends(get_db)):
     }
 
 
-
-@pages_router.get("/orders/{order_id}")
-def order_detail_page(request: Request):
-    return templates.TemplateResponse(
-        "orderdetails.html",
-        {"request": request}
-    )
-
 @pages_router.get("/orders/summary")
 def order_summary(
     request: Request,
@@ -253,3 +245,11 @@ def order_summary(
         "order_summary.html",
         {"request": request, "order": order}
     )
+
+@pages_router.get("/orders/{order_id}")
+def order_detail_page(request: Request):
+    return templates.TemplateResponse(
+        "orderdetails.html",
+        {"request": request}
+    )
+

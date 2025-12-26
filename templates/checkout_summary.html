@@ -1,0 +1,58 @@
+<h2>Order Summary</h2>
+
+<hr>
+
+<!-- CART ITEMS -->
+<h3>Items</h3>
+
+<table border="1" cellpadding="8" cellspacing="0" width="100%">
+  <tr>
+    <th>Product</th>
+    <th>Price</th>
+    <th>Quantity</th>
+    <th>Subtotal</th>
+  </tr>
+
+{% set total = 0 %}
+{% for item, product in items %}
+  {% set subtotal = product.price * item.quantity %}
+  {% set total = total + subtotal %}
+  <tr>
+    <td>{{ product.title }}</td>
+    <td>₹{{ product.price }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>₹{{ subtotal }}</td>
+  </tr>
+{% endfor %}
+
+<tr>
+  <td colspan="3" align="right"><b>Total</b></td>
+  <td><b>₹{{ total }}</b></td>
+</tr>
+</table>
+
+<br>
+
+<h3>Shipping Address</h3>
+
+<p>
+  <b>{{ checkout.shipping_address.name }}</b><br>
+  {{ checkout.shipping_address.address_line1 }}<br>
+  {% if checkout.shipping_address.address_line2 %}
+    {{ checkout.shipping_address.address_line2 }}<br>
+  {% endif %}
+  {{ checkout.shipping_address.city }},
+  {{ checkout.shipping_address.state }}<br>
+  Pincode: {{ checkout.shipping_address.pincode }}<br>
+  Phone: {{ checkout.shipping_address.phone }}
+</p>
+
+<hr>
+
+<!-- CONFIRM BUTTON -->
+<form method="post" action="/checkout/confirm">
+  <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
+  <button type="submit">
+    Confirm & Continue to Payment
+  </button>
+</form>

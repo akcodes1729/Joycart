@@ -85,7 +85,7 @@ async function removeItem(itemId) {
 async function checkout() {
     
 
-    const res = await fetch("/api/orders/place", {
+    const res = await fetch("/api/checkout/start", {
     method: "POST",
     credentials: "include"
 });
