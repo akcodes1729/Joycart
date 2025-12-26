@@ -38,6 +38,10 @@
         <p><b>City:</b> {{ ad.city }}</p>
         <p><b>State:</b> {{ ad.state }}</p>
         <p><b>Pincode:</b> {{ ad.pincode }}</p>
+        <a href="/address/edit/{{ ad.id }}">
+        <button type="button">Edit</button></a><br></br>
+        <form action="/api/address/delete/{{ ad.id }}" method="post">
+        <button type="submit">Delete</button></form>
       </div>
     {% endfor %}
   </div>

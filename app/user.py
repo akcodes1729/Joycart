@@ -15,6 +15,7 @@ pages_router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
+###############################REGISTER#########################################
 @router.post("/register")
 def create_user(
     username: str = Form(...),
@@ -51,7 +52,7 @@ def register(request: Request):
         {"request": request}
     )
 
-
+############################LOGIN AND LOGOUT#################################
 @router.post("/login")
 def login_user( username: str = Form(...),
     password: str = Form(...), 
@@ -103,7 +104,7 @@ def logout():
     response = RedirectResponse("/", status_code=302)
     response.delete_cookie("access_token")
     return response
-
+##########################DASHBOARD AND PROFILE###############################
 @pages_router.get("/dashboard", dependencies=[Depends(get_current_user)])
 def dashboard(
     request: Request,
@@ -131,7 +132,7 @@ def profile(
         }
     )
 
-
+################################ADDRESS ADD,DELETE,EDIT#############################
 @router.post("/address/add")
 def add_address(current_user: User = Depends(get_current_user),
     name: str = Form(...),
@@ -166,7 +167,7 @@ def add_address(current_user: User = Depends(get_current_user),
     db.add(address)
     db.commit()
 
-    return RedirectResponse("/profile", status_code=302)
+    return RedirectResponse("/addresses", status_code=302)
 
 @pages_router.get('/address/form', dependencies=[Depends(get_current_user)])
 def add_address(request: Request):
@@ -186,3 +187,74 @@ def get_address(request:Request,current_user: User = Depends(get_current_user),d
             'addresses':addresses
         }
     )
+
+@pages_router.get("/address/edit/{address_id}")
+def edit_address_page(
+    address_id: int,
+    request: Request,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    address = db.query(Address).filter(
+        Address.id == address_id,
+        Address.user_id == current_user.id
+    ).first()
+
+    if not address:
+        raise HTTPException(status_code=404)
+
+    return templates.TemplateResponse(
+        "address_edit.html",
+        {
+            "request": request,
+            "address": address
+        }
+    )
+@router.post("/address/edit/{address_id}")
+def edit_address(
+    address_id: int,
+    name: str = Form(...),
+    phone: str = Form(...),
+    address_line1: str = Form(...),
+    address_line2: str = Form(None),
+    city: str = Form(...),
+    state: str = Form(...),
+    pincode: str = Form(...),
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    address = db.query(Address).filter(
+        Address.id == address_id,
+        Address.user_id == current_user.id
+    ).first()
+
+    address.name = name
+    address.city = city
+    address.phone = phone
+    address.address_line1 = address_line1
+    address.address_line2 = address_line2
+    address.city = city
+    address.state = state
+    address.pincode = pincode
+    db.commit()
+
+    return RedirectResponse("/addresses", status_code=302)
+
+@router.post("/address/delete/{address_id}")
+def delete_address(
+    address_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    address = db.query(Address).filter(
+        Address.id == address_id,
+        Address.user_id == current_user.id
+    ).first()
+
+    if not address:
+        raise HTTPException(status_code=404)
+
+    db.delete(address)
+    db.commit()
+
+    return RedirectResponse("/addresses", status_code=302)
