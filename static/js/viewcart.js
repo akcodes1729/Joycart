@@ -95,11 +95,10 @@ async function checkout() {
     }
 
     const data = await res.json();
-
    /* alert(
         `Order placed!\nOrder ID: ${data.order_id}\nAmount: ₹${data.amount}`
     );*/
-    window.location.href = `/address/select`;
+    window.location.href = data.redirect_url;
 }
 
 document.addEventListener("DOMContentLoaded", loadCart);

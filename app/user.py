@@ -281,20 +281,25 @@ from fastapi import Form, HTTPException
 @router.post("/address/select")
 def delivery_address(
     selected_address_id: int = Form(...),
+    checkout_id: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    order = db.query(Order).filter(
+        Order.checkout_id == checkout_id,
+        Order.user_id == current_user.id,
+        Order.status == "DRAFT"
+    ).first()
+
+    if not order:
+        raise HTTPException(404)
 
     address = db.query(Address).filter(
         Address.id == selected_address_id,
         Address.user_id == current_user.id
     ).first()
 
-    if not address:
-        raise HTTPException(status_code=404, detail="Address not found")
-
-    
-    shipping_address = {
+    order.shipping_address = {
         "name": address.name,
         "phone": address.phone,
         "address_line1": address.address_line1,
@@ -304,29 +309,39 @@ def delivery_address(
         "pincode": address.pincode
     }
 
-    
+    order.status = "PENDING"
+    db.commit()
+
+    return RedirectResponse(
+        f"/orders/summary?checkout_id={checkout_id}",
+        status_code=302
+    )
+
+@pages_router.get("/address/select")
+def select_delivery_address(
+    request: Request,
+    checkout_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     order = db.query(Order).filter(
+        Order.checkout_id == checkout_id,
         Order.user_id == current_user.id,
-        Order.status == "PENDING"
+        Order.status == "DRAFT"
     ).first()
 
     if not order:
-        raise HTTPException(status_code=400, detail="No active order")
+        raise HTTPException(404)
 
-    
-    order.shipping_address = shipping_address
-    db.commit()
-
-    return RedirectResponse("/orders/summary", status_code=302)
-
-@pages_router.get("/address/select")
-def select_delivery_address(request:Request,current_user: User = Depends(get_current_user),db:Session=Depends(get_db)):
-
-    addresses = db.query(Address).filter(Address.user_id ==current_user.id).all()
+    addresses = db.query(Address).filter(
+        Address.user_id == current_user.id
+    ).all()
 
     return templates.TemplateResponse(
-        "address_delivery.html",{
-            'request':request,
-            'addresses':addresses
+        "address_delivery.html",
+        {
+            "request": request,
+            "addresses": addresses,
+            "checkout_id": checkout_id
         }
     )

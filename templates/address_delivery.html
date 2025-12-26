@@ -28,6 +28,7 @@
 <div class="address-container">
 
   <form action="/api/address/select" method="post">
+  <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
 
     <div class="address-grid">
       {% for ad in addresses %}

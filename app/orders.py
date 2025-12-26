@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
+from fastapi.responses import RedirectResponse
 from app.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.auth import get_current_user
-from app.models import Order, OrderItems, Product,Payment,Cart
+from app.models import Order, OrderItems, Product,Payment,Cart,User
 import uuid
 from datetime import datetime, timedelta
 
@@ -56,14 +57,13 @@ def place_order(request: Request,
     if total_amount == 0:
         raise HTTPException(status_code=400, detail="Invalid cart")
 
-    
     order = Order(
-        user_id=current_user.id,
-        amount=total_amount,
-        status="PENDING",
-        currency="INR",
-        expires_at=datetime.utcnow() + timedelta(minutes=30)
-    )
+    user_id=current_user.id,
+    checkout_id=str(uuid.uuid4()),
+    amount=total_amount,
+    status="DRAFT",
+    currency="INR"
+)
 
     db.add(order)
     db.flush()  
@@ -78,7 +78,9 @@ def place_order(request: Request,
 
     db.commit()
 
-    return {"order_id": order.id}
+    return {
+    "redirect_url": f"/address/select?checkout_id={order.checkout_id}"
+}
 
 ############################GET ORDERS##############################
 
@@ -231,9 +233,23 @@ def order_detail_page(request: Request):
         "orderdetails.html",
         {"request": request}
     )
+
 @pages_router.get("/orders/summary")
-def order_summary(request: Request):
+def order_summary(
+    request: Request,
+    checkout_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    order = db.query(Order).filter(
+        Order.checkout_id == checkout_id,
+        Order.user_id == current_user.id
+    ).first()
+
+    if not order:
+        raise HTTPException(404)
+
     return templates.TemplateResponse(
         "order_summary.html",
-        {"request": request}
+        {"request": request, "order": order}
     )
