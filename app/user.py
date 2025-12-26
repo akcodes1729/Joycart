@@ -246,6 +246,16 @@ def delete_address(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    address_count = db.query(Address).filter(
+        Address.user_id == current_user.id
+    ).count()
+
+    if address_count <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="You must have at least one address"
+        )
+
     address = db.query(Address).filter(
         Address.id == address_id,
         Address.user_id == current_user.id
