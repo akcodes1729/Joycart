@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.models import Cart,User,Product,Checkout,OrderItems,Address,CartItem,Order
+from app.models import Cart,Payment,Product,Checkout,OrderItems,Address,CartItem,Order
 import uuid
 
 router = APIRouter()
@@ -237,37 +237,46 @@ def cod_confirm_page(
 
 @router.post("/checkout/cod/confirm")
 def place_cod_order(
-    request:Request,
+    request: Request,
     checkout_id: str = Form(...),
     db: Session = Depends(get_db)
 ):
     current_user = request.state.user
+
     checkout = db.query(Checkout).filter(
         Checkout.checkout_id == checkout_id,
         Checkout.user_id == current_user.id
     ).first()
-
     if not checkout:
         raise HTTPException(404)
 
     cart = db.query(Cart).filter(
-        Cart.id == current_user.id).first()
-    
+        Cart.user_id == current_user.id
+    ).first()
+    if not cart or not cart.items:
+        raise HTTPException(400, "Cart is empty")
+
     total_amount = 0
-    order_items: list[OrderItems] = []
-    
+    order_items = []
+
     for item in cart.items:
-        product = (
-            db.query(Product)
-            .filter(Product.id == item.product_id)
-            .first()
-        )
+        product = db.query(Product).filter(
+            Product.id == item.product_id
+        ).first()
 
         if not product:
             continue
 
+        if product.stock < item.quantity:
+            raise HTTPException(
+                400, f"Insufficient stock for {product.title}"
+            )
+
         subtotal = product.price * item.quantity
         total_amount += subtotal
+
+        
+        product.stock -= item.quantity
 
         order_items.append(
             OrderItems(
@@ -279,9 +288,8 @@ def place_cod_order(
         )
 
     if total_amount == 0:
-        raise HTTPException(status_code=400, detail="Invalid cart")
+        raise HTTPException(400, "Invalid cart")
 
-    
     order = Order(
         user_id=current_user.id,
         amount=total_amount,
@@ -290,28 +298,35 @@ def place_cod_order(
         currency="INR"
     )
 
-
     db.add(order)
-    db.flush() 
-    
+    db.flush()   
+
     for oi in order_items:
         oi.order_id = order.id
 
-    db.add_all(order_items)
+    payment = Payment(
+        order_id=order.id,
+        amount=order.amount,
+        status="DUE",
+        method="COD"
+    )
 
-    db.commit()
+    db.add_all(order_items)
+    db.add(payment)
 
     
+    db.query(CartItem).filter(
+        CartItem.cart_id == cart.id
+    ).delete()
 
-   
     db.delete(checkout)
-    db.delete(cart)
     db.commit()
 
     return RedirectResponse(
         f"/orders/{order.id}",
         status_code=302
     )
+
 @pages_router.get("/payment/start")
 def payment_start_page(
     request: Request,

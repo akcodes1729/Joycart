@@ -143,7 +143,7 @@ class Payment(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     amount = Column(Float, nullable=False)
     status = Column(String, nullable=False) # success | failed
-    gateway = Column(String, nullable=False)
+    method = Column(String, nullable=False)
     gateway_payment_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
