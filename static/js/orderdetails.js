@@ -8,10 +8,10 @@ async function loadOrder() {
 
     container.innerHTML = `
         <p><b>Order ID:</b> ${order.id}</p>
-        <p><b>Status:</b> ${order.status}</p>
-        <p><b>Total :</b> ₹${order.amount}</p>
-        <p><b>Payment:</b> ${order.payment
-    ? `${order.payment.method} (${order.payment.status}) ${
+        <p><b>Order Status:</b> ${order.status}</p>
+        <p><b>Total Amount :</b> ₹${order.amount}</p>
+        <p><b>Payment Method :</b> ${order.payment
+    ? `${order.payment.method}<br></br><b>Payment Status:</b> ${order.payment.status} <br></br><b>Payment ID:</b> ${
         order.payment.gateway_id ?? "N/A"
       }`
     : "Not applicable"
