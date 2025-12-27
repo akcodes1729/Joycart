@@ -461,7 +461,6 @@ def payment_success(request: Request,
     db.delete(checkout)
     db.commit()
 
-    return RedirectResponse(
-        f"/orders/{order.id}",
+    return RedirectResponse(f"/payment-status/{order.id}",
         status_code=302
     )

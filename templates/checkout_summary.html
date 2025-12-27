@@ -48,10 +48,14 @@
 
 <hr>
 
-<!-- CONFIRM BUTTON -->
+
 <form method="post" action="/api/checkout/confirm">
   <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
   <button type="submit">
     Confirm & Continue to Payment
   </button>
 </form>
+<br></br>
+  <a href="/checkout/address?checkout_id={{ checkout_id }}">
+    ← Back to Address Page
+  </a>

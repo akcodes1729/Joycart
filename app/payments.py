@@ -85,7 +85,7 @@ def payment_success(
         .first()
     )
 
-    if order.status == "PAID":
+    if order.status == "PLACED":
         details = "Payment Success"
         payment_id = payment.gateway_payment_id if payment else ""
 
