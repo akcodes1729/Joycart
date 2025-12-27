@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Gateway</title>
+</head>
+<body>
+
+  <h2>Payment Gateway</h2>
+
+  <p><b>Amount to Pay:</b> ₹{{ amount }}</p>
+  <p><b>Checkout ID:</b> {{ checkout_id }}</p>
+
+  <form method="post" action="/api/checkout/prepaid/confirm">
+    <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
+    <button type="submit">Pay Now</button>
+  </form>
+
+  <br>
+
+  <a href="/checkout/summary?checkout_id={{ checkout_id }}">
+    Cancel & go back
+  </a>
+
+</body>
+</html>

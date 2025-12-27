@@ -9,10 +9,10 @@
 
   <p>You will be redirected to the payment gateway.</p>
 
-  <form method="post" action="/payment/process">
-    <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
-    <button type="submit">Pay Now</button>
-  </form>
+  <a href="/checkout/prepaid/confirm?checkout_id={{ checkout_id }}">
+    <button type="button">Pay Now</button>
+  </a>
+  
 
   <br>
 
