@@ -323,8 +323,14 @@ def place_cod_order(
     db.commit()
 
     return RedirectResponse(
-        f"/orders/{order.id}",
+        "/checkout/cod/orderplace",
         status_code=302
+    )
+@pages_router.get("/checkout/cod/orderplace")
+def cod_order_success(request:Request):
+    return templates.TemplateResponse(
+        "cod_order_success.html",
+        {"request":request}
     )
 
 @pages_router.get("/payment/start")
