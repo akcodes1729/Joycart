@@ -260,9 +260,12 @@ def place_cod_order(
     order_items = []
 
     for item in cart.items:
-        product = db.query(Product).filter(
-            Product.id == item.product_id
-        ).first()
+        product = (
+            db.query(Product)
+            .filter(Product.id == item.product_id)
+            .with_for_update()
+            .first()
+        )
 
         if not product:
             continue
@@ -404,9 +407,12 @@ def payment_success(request: Request,
     order_items = []
 
     for item in cart.items:
-        product = db.query(Product).filter(
-            Product.id == item.product_id
-        ).first()
+        product = (
+            db.query(Product)
+            .filter(Product.id == item.product_id)
+            .with_for_update()
+            .first()
+        )
 
         if not product:
             continue
