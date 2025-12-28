@@ -258,14 +258,18 @@ def place_cod_order(
 
     total_amount = 0
     order_items = []
+    
+    product_ids = [item.product_id for item in cart.items]
+    products = (
+        db.query(Product)
+        .filter(Product.id.in_(product_ids))
+        .with_for_update()
+        .all()
+    )
+    product_map = {p.id: p for p in products}
 
     for item in cart.items:
-        product = (
-            db.query(Product)
-            .filter(Product.id == item.product_id)
-            .with_for_update()
-            .first()
-        )
+        product = product_map.get(item.product_id)
 
         if not product:
             continue
@@ -278,7 +282,6 @@ def place_cod_order(
         subtotal = product.price * item.quantity
         total_amount += subtotal
 
-        
         product.stock -= item.quantity
 
         order_items.append(
@@ -289,6 +292,7 @@ def place_cod_order(
                 price_at_purchase=product.price
             )
         )
+
 
     if total_amount == 0:
         raise HTTPException(400, "Invalid cart")
