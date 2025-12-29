@@ -404,64 +404,97 @@ def prepaid_payment_page(
             "amount": checkout.amount
         }
     )
+
+@pages_router.get("/fake-gateway")
+def fake_gateway_page(
+    request: Request,
+    checkout_id: str
+):
+    return templates.TemplateResponse(
+        "fake_gateway.html",
+        {
+            "request": request,
+            "checkout_id": checkout_id
+        }
+    )
 @router.post("/checkout/prepaid/confirm")
-def payment_success(request: Request,
+def start_prepaid_payment(
     checkout_id: str = Form(...),
+):
+    return RedirectResponse(
+        f"/fake-gateway?checkout_id={checkout_id}",
+        status_code=302
+    )
+
+@pages_router.get("/fake-gateway")
+def fake_gateway_page(
+    request: Request,
+    checkout_id: str
+):
+    return templates.TemplateResponse(
+        "fake_gateway.html",
+        {
+            "request": request,
+            "checkout_id": checkout_id
+        }
+    )
+
+@router.post("/payment/webhook")
+def payment_webhook(
+    checkout_id: str = Form(...),
+    payment_status: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    current_user = request.state.user
+    
+    if payment_status != "SUCCESS":
+        raise HTTPException(400, "Payment failed")
 
     checkout = db.query(Checkout).filter(
-        Checkout.checkout_id == checkout_id,
-        Checkout.user_id == current_user.id
+        Checkout.checkout_id == checkout_id
     ).first()
 
     if not checkout:
         raise HTTPException(404)
+
     
     existing_order = db.query(Order).filter(
         Order.checkout_id == checkout.checkout_id
     ).first()
 
     if existing_order:
-        return RedirectResponse(
-        "/payment/success",
-        status_code=302
-    )
+        return {"status": "already processed"}
 
+    
     cart = db.query(Cart).filter(
-        Cart.user_id == current_user.id
+        Cart.user_id == checkout.user_id
     ).first()
-    if not cart or not cart.items:
-        raise HTTPException(400, "Cart is empty")
 
-    total_amount = 0
-    order_items = []
+    if not cart or not cart.items:
+        raise HTTPException(400)
+
     
     product_ids = [item.product_id for item in cart.items]
+
     products = (
         db.query(Product)
         .filter(Product.id.in_(product_ids))
         .with_for_update()
         .all()
     )
+
     product_map = {p.id: p for p in products}
 
-    for item in cart.items:
-        product = product_map.get(item.product_id)
+    total_amount = 0
+    order_items = []
 
-        if not product:
-            continue
+    for item in cart.items:
+        product = product_map[item.product_id]
 
         if product.stock < item.quantity:
-            raise HTTPException(
-                400, f"Insufficient stock for {product.title}"
-            )
-
-        subtotal = product.price * item.quantity
-        total_amount += subtotal
+            raise HTTPException(400, "Out of stock")
 
         product.stock -= item.quantity
+        total_amount += product.price * item.quantity
 
         order_items.append(
             OrderItems(
@@ -472,21 +505,18 @@ def payment_success(request: Request,
             )
         )
 
-
-    if total_amount == 0:
-        raise HTTPException(400, "Invalid cart")
-
+    
     order = Order(
-        user_id=current_user.id,
-        amount=total_amount,
+        user_id=checkout.user_id,
         checkout_id=checkout.checkout_id,
+        amount=total_amount,
         shipping_address=checkout.shipping_address,
         status="PAID",
         currency="INR"
     )
 
     db.add(order)
-    db.flush()   
+    db.flush()
 
     for oi in order_items:
         oi.order_id = order.id
@@ -495,14 +525,13 @@ def payment_success(request: Request,
         order_id=order.id,
         amount=order.amount,
         status="PAID",
-        method="PREPAID",
-        gateway_payment_id= f"PAY-{uuid.uuid4().hex[:12]}"
+        method="PREPAID"
     )
 
     db.add_all(order_items)
     db.add(payment)
 
-    
+    # 6. CLEANUP
     db.query(CartItem).filter(
         CartItem.cart_id == cart.id
     ).delete()
@@ -510,9 +539,7 @@ def payment_success(request: Request,
     db.delete(checkout)
     db.commit()
 
-    return RedirectResponse("/payment/success",
-        status_code=302
-    )
+    return RedirectResponse("/payment/success", status_code=302)
 
 @pages_router.get("/payment/success")
 def payment_success(request:Request):
