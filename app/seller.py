@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends,Request,Form, File, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
-from app.db import get_db
-from app.models import Seller,Product,OrderItems,Order
+from app.db.db import get_db
+from app.db.models import Seller,Product,OrderItems,Order
 from fastapi import BackgroundTasks
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url

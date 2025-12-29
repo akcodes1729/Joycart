@@ -2,10 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException,Form,Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from app.db import get_db
+from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.auth import hash_password, verify_password, create_access_token,get_current_user
-from app.models import User, Address,Order
+from app.db.models import User, Address,Order
 from app.product import list_products
 
 

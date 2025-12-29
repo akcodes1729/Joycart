@@ -6,8 +6,8 @@ from fastapi import Depends, HTTPException, status,Request
 from fastapi.security import HTTPBearer
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from app.db import get_db
-from app import models
+from app.db.db import get_db
+from app.db.db import models
 from dotenv import load_dotenv
 
 

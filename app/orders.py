@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
-from app.db import get_db
+from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
-from app.models import Order, OrderItems, Product,Payment
+from app.db.models import Order, OrderItems, Product,Payment
 import uuid
 
 

@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from app.db import get_db
+from app.db.db import get_db
 import os,uuid,hmac,hashlib,dotenv
 from datetime import datetime,timedelta
-from app.models import Cart,Payment,Product,Checkout,OrderItems,Address,CartItem,Order
+from app.db.models import Cart,Payment,Product,Checkout,OrderItems,Address,CartItem,Order
 
 
 router = APIRouter()
@@ -14,6 +14,8 @@ pages_router = APIRouter()
 _last_cleanup = None #lazy cleanup 
 
 PAYMENT_WEBHOOK_SECRET = os.getenv("PAYMENT_WEBHOOK_SECRET")
+if not PAYMENT_WEBHOOK_SECRET:
+    raise RuntimeError("PAYMENT_WEBHOOK_SECRET is not set")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -52,6 +54,36 @@ def start_checkout(
     return {
         "redirect_url": f"/checkout/address?checkout_id={checkout.checkout_id}"
     }
+
+@pages_router.get("/checkout/address")
+def checkout_address_page(
+    request: Request,
+    checkout_id: str,
+    db: Session = Depends(get_db)
+):
+    
+    current_user = request.state.user
+
+    checkout = db.query(Checkout).filter(
+        Checkout.checkout_id == checkout_id,
+        Checkout.user_id == current_user.id
+    ).first()
+
+    if not checkout:
+        raise HTTPException(404)
+
+    addresses = db.query(Address).filter(
+        Address.user_id == current_user.id
+    ).all()
+
+    return templates.TemplateResponse(
+        "choose_delivery_address.html",
+        {
+            "request": request,
+            "addresses": addresses,
+            "checkout_id": checkout_id
+        }
+    )
 
 @router.post("/checkout/address")
 def save_checkout_address(
@@ -142,35 +174,7 @@ def confirm_checkout(
         f"/checkout/payment?checkout_id={checkout_id}",
         status_code=302
     )
-@pages_router.get("/checkout/address")
-def checkout_address_page(
-    request: Request,
-    checkout_id: str,
-    db: Session = Depends(get_db)
-):
-    
-    current_user = request.state.user
 
-    checkout = db.query(Checkout).filter(
-        Checkout.checkout_id == checkout_id,
-        Checkout.user_id == current_user.id
-    ).first()
-
-    if not checkout:
-        raise HTTPException(404)
-
-    addresses = db.query(Address).filter(
-        Address.user_id == current_user.id
-    ).all()
-
-    return templates.TemplateResponse(
-        "address_delivery.html",
-        {
-            "request": request,
-            "addresses": addresses,
-            "checkout_id": checkout_id
-        }
-    )
 
 @pages_router.get("/checkout/payment")
 def checkout_payment_page(
@@ -420,8 +424,9 @@ def fake_gateway_page(
     request: Request,
     checkout_id: str
 ):
-    payload = f"{checkout_id}|SUCCESS"
+    
     gateway_payment_id = f"PAY-{uuid.uuid4().hex[:12]}"
+    payload = f"{checkout_id}|SUCCESS|{gateway_payment_id}"
     signature = generate_signature(payload, PAYMENT_WEBHOOK_SECRET)
 
     return templates.TemplateResponse(
@@ -532,7 +537,8 @@ def payment_webhook(
         order_id=order.id,
         amount=order.amount,
         status="PAID",
-        method="PREPAID"
+        method="PREPAID",
+        gateway_payment_id=gateway_payment_id
         
     )
 

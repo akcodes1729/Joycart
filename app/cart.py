@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request,Form
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from app.db import get_db
-from app.models import Cart, CartItem, Product
+from app.db.db import get_db
+from app.db.models import Cart, CartItem, Product
 
 
 router = APIRouter()
