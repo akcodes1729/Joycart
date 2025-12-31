@@ -11,12 +11,26 @@
     gap: 15px;
   }
 
-  .address-card {
+  .address-card1  {
     border: 1px solid #ddd;
     padding: 15px;
     border-radius: 8px;
     background: #fafafa;
-  }
+    
+        
+}
+  .address-card2 {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: #fafafa;
+    display: flex;          
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;   
+    text-align: center;     
+    min-height: 150px;     
+}
 
   .address-card p {
     margin: 4px 0;
@@ -32,7 +46,7 @@
 
     <div class="address-grid">
       {% for ad in addresses %}
-        <div class="address-card">
+        <div class="address-card1">
           <input
             type="radio"
             name="selected_address_id"
@@ -51,8 +65,13 @@
           </label>
         </div>
       {% endfor %}
+    <div class="address-card2">
+    <a href="/address/add?checkout_id={{ checkout_id }}">
+  Add new address
+</a>
     </div>
-    <a href = "">
+    </div>
+
     <br></br>
     <button type="submit" class="continue-btn">
       Continue
@@ -61,6 +80,9 @@
   </form>
     <a href="/cart/">
     ← Back to Cart
+  </a>  |
+  <a href="/home/">
+    Home
   </a>
 
 </div>

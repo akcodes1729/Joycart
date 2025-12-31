@@ -147,6 +147,7 @@ def add_address(current_user: User = Depends(get_current_user),
     state: str = Form(...),
     pincode: str = Form(...),
     is_default: bool = Form(False),
+    redirect_to: str = Form(None),
     db: Session = Depends(get_db)
 ):
 
@@ -171,13 +172,18 @@ def add_address(current_user: User = Depends(get_current_user),
     db.add(address)
     db.commit()
 
-    return RedirectResponse("/address", status_code=302)
+    return RedirectResponse(
+        redirect_to or "/address",
+        status_code=302
+    )
 
 @pages_router.get('/address/add', dependencies=[Depends(get_current_user)])
-def add_address(request: Request):
+def add_address(request: Request,
+                checkout_id: str | None = None):
     return templates.TemplateResponse(
         "address_add.html",
-        {"request":request}
+        {"request":request,
+         "checkout_id": checkout_id}
         )
 
 @pages_router.get("/address")
