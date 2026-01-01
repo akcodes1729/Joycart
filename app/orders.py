@@ -44,7 +44,7 @@ def get_single_order(request: Request,
         "status": order.status,
         "created_at": order.created_at,
         "items": [
-            {
+            {   "item_id":oi.id,
                 "product_id": product.id,
                 "title": product.title,
                 "price": oi.price_at_purchase,
@@ -91,12 +91,12 @@ def get_all_orders(request: Request, db: Session = Depends(get_db)):
 
 #######################################CANCEL AND REFUND ORDERS###################################
 
-@router.post("/cancel/{order_id}")
-def cancel_order(
+@router.post("/{order_id}/cancel")
+def cancel_entire_order(request:Request,
     order_id: int,
-    request: Request,
     db: Session = Depends(get_db)
 ):
+    
     current_user = request.state.user
 
     order = db.query(Order).filter(
@@ -105,63 +105,59 @@ def cancel_order(
     ).first()
 
     if not order:
-        raise HTTPException(404, "Order not found")
+        raise HTTPException(404)
 
-    if order.status in ["CANCELLED", "REFUNDED"]:
-        raise HTTPException(400, "Order already cancelled")
-
-    
-    order_items = db.query(OrderItems).filter(
+    items = db.query(OrderItems).filter(
         OrderItems.order_id == order.id
     ).all()
 
-    if not order_items:
-        raise HTTPException(400, "No order items found")
-
-    
-    for item in order_items:
+    for item in items:
         if item.status in ["SHIPPED", "DELIVERED"]:
             raise HTTPException(
                 400,
-                "Order cannot be cancelled. Some items already shipped."
+                "Cannot cancel order after shipping one item"
             )
 
-    refund_amount = 0
+    for item in items:
+        item.status = "CANCELLED"
 
-    
-    for item in order_items:
-        if item.status == "PLACED":
-            item.status = "CANCELLED"
-
-            
-            product = db.query(Product).filter(
-                Product.id == item.product_id
-            ).first()
-            if product:
-                product.stock += item.quantity
-
-            refund_amount += item.price_at_purchase * item.quantity
-
-    
     order.status = "CANCELLED"
-
-   
-    if refund_amount > 0:
-        payment = Payment(
-            order_id=order.id,
-            amount=refund_amount,
-            status="REFUNDED",
-            method="SYSTEM ",
-            gateway_payment_id=f"REFUND-{uuid.uuid4().hex[:12]}"
-        )
-        db.add(payment)
-
     db.commit()
 
-    return {
-        "message": "Order cancelled successfully",
-        "order_id": order.id
-    }
+    return {"message": "Order cancelled"}
+
+
+@router.post("/item/{item_id}/cancel")
+def cancel_order_item(request:Request,
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    
+    current_user = request.state.user
+
+    item = (
+        db.query(OrderItems)
+        .join(Order)
+        .filter(
+            OrderItems.id == item_id,
+            Order.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(404)
+
+    if item.status not in ["PLACED", "ACCEPTED"]:
+        raise HTTPException(
+            400,
+            "This item cannot be cancelled"
+        )
+
+    item.status = "CANCELLED"
+    db.commit()
+
+    return {"message": "Item cancelled"}
 
 @pages_router.get("/orders/{order_id}")
 def order_detail_page(request: Request):
@@ -169,4 +165,3 @@ def order_detail_page(request: Request):
         "orderdetails.html",
         {"request": request}
     )
-
