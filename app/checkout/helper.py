@@ -54,7 +54,7 @@ def helper(current_user,db,checkout_id,method,gateway_payment_id):
                     400, f"Insufficient stock for {product.title}"
                 )
 
-            subtotal = item.price_at_checkout * item.quantity
+            subtotal = f"{(item.price_at_checkout * item.quantity):.2f}"
             total_amount += subtotal
 
             product.stock -= item.quantity

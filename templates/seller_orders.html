@@ -5,47 +5,50 @@
 
   <style>
     .orders-container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 20px auto;
       font-family: sans-serif;
     }
 
     .order-card {
+      margin-bottom: 40px;
+    }
+
+    /* GRID */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    /* ITEM CARD */
+    .item-card {
       border: 1px solid #ddd;
-      padding: 15px;
-      margin-bottom: 20px;
       border-radius: 8px;
-    }
-
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: stretch;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .item-left {
-      width: 35%;
+      padding: 15px;
       display: flex;
       flex-direction: column;
-      align-items: center; 
+      align-items: center;
       text-align: center;
+      background: #fff;
     }
 
-    .item-right {
-      width: 60%;
-      
+    .item-card img {
+      width: 120px;
+      height: auto;
+      margin-bottom: 10px;
+      border-radius: 6px;
     }
 
+    /* STATUS */
     .status {
-      display: inline-block;
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 4px;
-      color: white;
+      color: #fff;
+      font-size: 12px;
       font-weight: bold;
-      font-size: 13px;
-      text-transform: capitalize;
+      text-transform: uppercase;
       margin-bottom: 8px;
     }
 
@@ -55,26 +58,25 @@
     .status.delivered { background: darkgreen; }
     .status.cancelled { background: red; }
 
-    
-    .actions {
-      margin-top: auto;         
-      display: flex;
-      gap: 10px;                 
-      justify-content: center;   
+    /* DETAILS */
+    .item-details p {
+      margin: 4px 0;
     }
 
-    .actions form {
-      margin: 0;
+    /* ACTIONS */
+    .actions {
+      margin-top: auto;
+      display: flex;
+      gap: 8px;
     }
 
     .actions button {
-      padding: 6px 14px;         /* small buttons */
-      font-size: 13px;
+      padding: 6px 12px;
+      font-size: 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      color: white;
-      white-space: nowrap;
+      color: #fff;
     }
 
     .btn-accept { background: #007bff; }
@@ -88,25 +90,32 @@
   <div class="orders-container">
     <h2>Seller Orders</h2>
     <a href="/seller/dashboard">← Seller Dashboard</a>
-    <br><br>
 
-    {% for order_id, items in grouped_orders.items() %}
+    {% for order_id, rows in grouped_orders.items() %}
       <div class="order-card">
         <h3>Order ID: {{ order_id }}</h3>
 
-        {% for item in items %}
-          <div class="item-row">
-            <div class="item-left">
-              <p><strong>Price:</strong> ₹{{ item.price_at_purchase }}</p>
-              <p><strong>Quantity:</strong> {{ item.quantity }}</p>
-              <a href="/products/{{ item.product_id }}">View product</a>
-            </div>
+        <div class="items-grid">
+          {% for row in rows %}
+            {% set item = row.item %}
+            {% set product = row.product %}
 
-            <div class="item-left">
+            <div class="item-card">
+
               <div class="status {{ item.status|lower }}">
                 {{ item.status }}
-              </div></div>
-              <div class="item-right">
+              </div>
+
+              <img src="{{ product.thumbnail }}" alt="{{ product.title }}">
+
+              <div class="item-details">
+                <p><strong>{{ product.title }}</strong></p>
+                <p>₹{{ item.price_at_purchase }}</p>
+                <p>Qty: {{ item.quantity }}</p>
+                <a href="/products/{{ item.product_id }}">View</a>
+                <br></br>
+              </div>
+
               <div class="actions">
                 {% if item.status|upper == "PLACED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
@@ -134,9 +143,10 @@
                   </form>
                 {% endif %}
               </div>
+
             </div>
-          </div>
-        {% endfor %}
+          {% endfor %}
+        </div>
       </div>
     {% else %}
       <p>No orders.</p>

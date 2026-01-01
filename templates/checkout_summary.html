@@ -14,7 +14,7 @@
 
 {% set ns = namespace(total=0) %}
 {% for item, product in items %}
-  {% set subtotal = product.price * item.quantity %}
+  {% set subtotal = (product.price * item.quantity) | round(2) %}
   {% set ns.total = ns.total + subtotal %}
   <tr>
     <td>{{ product.title }}</td>

@@ -246,25 +246,30 @@ def get_seller_order(request: Request,
     db: Session = Depends(get_db),seller: Seller = Depends(get_current_seller)):
     
     orderitems = (
-        db.query(OrderItems)
-        .filter(OrderItems.seller_id == seller.id)
-        .order_by(OrderItems.id.desc())
-        .all()
-    )
+    db.query(OrderItems, Product)
+    .join(Product, Product.id == OrderItems.product_id)
+    .filter(OrderItems.seller_id == seller.id)
+    .order_by(OrderItems.id.desc())
+    .all()
+)
+
 
     grouped_orders = defaultdict(list)
 
-    for item in orderitems:
-        grouped_orders[item.order_id].append(item)
+    for item, product in orderitems:
+        grouped_orders[item.order_id].append({
+        "item": item,
+        "product": product
+    })
 
     return templates.TemplateResponse(
-        "seller_orders.html",
-        {
-            "request": request,
-            "grouped_orders": grouped_orders
-            
-        }
-    )
+    "seller_orders.html",
+    {
+        "request": request,
+        "grouped_orders": grouped_orders
+    }
+)
+
 @router.post("/seller/order-item/{item_id}/action")
 def seller_order_item_action(
     item_id: int,
