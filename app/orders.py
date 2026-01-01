@@ -49,6 +49,7 @@ def get_single_order(request: Request,
                 "title": product.title,
                 "price": oi.price_at_purchase,
                 "quantity": oi.quantity,
+                "status": oi.status,
                 "subtotal": oi.price_at_purchase * oi.quantity
             }
             for oi, product in items

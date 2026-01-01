@@ -27,25 +27,29 @@ async function loadOrder() {
                 <p><b>Price:</b> ₹${item.price}</p>
                 <p><b>Qty:</b> ${item.quantity}</p>
                 <p><b>Subtotal:</b> ₹${item.subtotal}</p>
+                <p><b>Item Status:</b> ${item.status}</p>
+                
             </div>
         `;
     });
-if (order.status === "PLACED"|| order.status === "PAID") {
-        container.innerHTML += `
-            <hr>
-            
-            <button onclick="cancelOrder(${order.id})">
-                Cancel Order
-            </button><br></br>
-        <a href="/">Home</a>
-    `;
-}
-if (order.status === "CANCELLED") {
-        container.innerHTML += `
+const cancellableStatuses = ["PLACED", "ACCEPTED"];
 
+const canCancelOrder = order.items.every(
+    item => cancellableStatuses.includes(item.status)
+);
+
+if (canCancelOrder && order.status !== "CANCELLED") {
+    container.innerHTML += `
+        <hr>
+        <button onclick="cancelOrder(${order.id})">
+            Cancel Order
+        </button><br><br>
         <a href="/">Home</a>
     `;
+} else {
+    container.innerHTML += `<a href="/">Home</a>`;
 }
+
 }
 async function cancelOrder(orderId) {
     

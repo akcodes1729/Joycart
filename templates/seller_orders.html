@@ -20,18 +20,22 @@
     .item-row {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: stretch;
       padding: 10px 0;
       border-bottom: 1px solid #eee;
     }
 
     .item-left {
-      width: 60%;
+      width: 35%;
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      text-align: center;
     }
 
     .item-right {
-      width: 35%;
-      text-align: right;
+      width: 60%;
+      
     }
 
     .status {
@@ -41,8 +45,8 @@
       color: white;
       font-weight: bold;
       font-size: 13px;
-      margin-bottom: 10px;
       text-transform: capitalize;
+      margin-bottom: 8px;
     }
 
     .status.placed { background: orange; }
@@ -51,24 +55,32 @@
     .status.delivered { background: darkgreen; }
     .status.cancelled { background: red; }
 
+    
+    .actions {
+      margin-top: auto;         
+      display: flex;
+      gap: 10px;                 
+      justify-content: center;   
+    }
+
     .actions form {
-      margin-bottom: 6px;
+      margin: 0;
     }
 
     .actions button {
-      width: 100%;
-      padding: 6px;
+      padding: 6px 14px;         /* small buttons */
+      font-size: 13px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 13px;
       color: white;
+      white-space: nowrap;
     }
 
     .btn-accept { background: #007bff; }
+    .btn-cancel { background: #dc3545; }
     .btn-ship { background: #6f42c1; }
     .btn-deliver { background: #28a745; }
-    .btn-cancel { background: #dc3545; }
   </style>
 </head>
 
@@ -90,13 +102,11 @@
               <a href="/products/{{ item.product_id }}">View product</a>
             </div>
 
-            <div class="item-right">
-              
+            <div class="item-left">
               <div class="status {{ item.status|lower }}">
                 {{ item.status }}
-              </div>
-
-              
+              </div></div>
+              <div class="item-right">
               <div class="actions">
                 {% if item.status|upper == "PLACED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
@@ -113,14 +123,14 @@
                 {% if item.status|upper == "ACCEPTED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
                     <input type="hidden" name="action" value="SHIP">
-                    <button class="btn-ship">Mark Shipped</button>
+                    <button class="btn-ship">Ship</button>
                   </form>
                 {% endif %}
 
                 {% if item.status|upper == "SHIPPED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
                     <input type="hidden" name="action" value="DELIVER">
-                    <button class="btn-deliver">Mark Delivered</button>
+                    <button class="btn-deliver">Deliver</button>
                   </form>
                 {% endif %}
               </div>
