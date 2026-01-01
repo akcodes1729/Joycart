@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.db.models import Order, OrderItems, Product,Payment
-import uuid
 
 
 router = APIRouter()
@@ -120,8 +119,9 @@ def cancel_entire_order(request:Request,
             )
 
     for item in items:
-        item.status = "CANCELLED"
-
+        if item.status in ["PLACED", "ACCEPTED"]:
+            restore_stock_for_item(item, db)
+            item.status = "CANCELLED"
     order.status = "CANCELLED"
     db.commit()
 
@@ -154,6 +154,8 @@ def cancel_order_item(request:Request,
             400,
             "This item cannot be cancelled"
         )
+    
+    restore_stock_for_item(item, db)
 
     item.status = "CANCELLED"
     db.commit()
@@ -166,3 +168,13 @@ def order_detail_page(request: Request):
         "orderdetails.html",
         {"request": request}
     )
+
+def restore_stock_for_item(item, db):
+    product = db.query(Product).filter(
+        Product.id == item.product_id
+    ).with_for_update().first()
+
+    if not product:
+        return
+
+    product.stock += item.quantity

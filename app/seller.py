@@ -10,6 +10,7 @@ from cloudinary.utils import cloudinary_url
 import json,os
 from collections import defaultdict
 from app.auth import get_current_seller
+from app.orders import restore_stock_for_item
 
 
 router = APIRouter()
@@ -300,7 +301,7 @@ def seller_order_item_action(
     if action not in valid_transitions[current_status]:
         raise HTTPException(400, "Invalid action for this status")
 
-    # apply state change
+    
     if action == "ACCEPT":
         item.status = "ACCEPTED"
     elif action == "SHIP":
@@ -308,6 +309,11 @@ def seller_order_item_action(
     elif action == "DELIVER":
         item.status = "DELIVERED"
     elif action == "CANCEL":
+        if item.status in ["SHIPPED", "DELIVERED"]:
+            raise HTTPException(400, "Cannot cancel shipped item")
+
+        restore_stock_for_item(item, db)
+        
         item.status = "CANCELLED"
 
     db.commit()
