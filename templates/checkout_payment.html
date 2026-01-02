@@ -1,5 +1,7 @@
 <h2>Select Payment Method</h2>
 
+<p><b>Total Amount:</b> ₹{{ amount | round(2) }}</p>
+
 <form method="post" action="/api/checkout/payment">
   <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
   <input type="hidden" name="method" value="{{ method }}">

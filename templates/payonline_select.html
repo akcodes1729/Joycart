@@ -6,8 +6,6 @@
 <body>
     <h2>Select Online Payment Method</h2>
 
-<p><b>Total Amount:</b> ₹{{ amount }}</p>
-
 <form method="post" action="/api/checkout/payonline/confirmselected">
   <input type="hidden" name="checkout_id" value="{{ checkout_id }}">
   <input type="hidden" name="method" value="{{ method }}">

@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from app.db.models import Checkout,Payment,Order,OrderItems,Product,CheckoutItem
+from app.db.models import Checkout,Payment,Order,OrderItems,Product,CheckoutItem,Cart,CartItem
 
 
 def helper(current_user,db,checkout_id,method,gateway_payment_id):
@@ -12,6 +12,10 @@ def helper(current_user,db,checkout_id,method,gateway_payment_id):
         ).first()
     if not checkout:
             raise HTTPException(404)
+    
+    cart = db.query(Cart).filter(
+    Cart.user_id == current_user.id
+).first()
         
     existing_order = db.query(Order).filter(
                 Order.checkout_id == checkout.checkout_id
@@ -112,6 +116,11 @@ def helper(current_user,db,checkout_id,method,gateway_payment_id):
     ).delete()
 
     db.delete(checkout)
+
+    if checkout.mode == "CART" and cart:
+        db.query(CartItem).filter(
+            CartItem.cart_id == cart.id
+        ).delete()
     db.commit()
 
     return order
