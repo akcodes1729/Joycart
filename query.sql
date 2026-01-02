@@ -1,5 +1,4 @@
 
-drop table orders
-drop table order_items
-drop table payments
-drop table checkouts
+UPDATE payments
+SET status = 'COD'
+WHERE status = 'DUE';

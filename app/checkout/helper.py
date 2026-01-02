@@ -95,7 +95,7 @@ def helper(current_user,db,checkout_id,method,gateway_payment_id):
         payment = Payment(
                 order_id=order.id,
                 amount=order.amount,
-                status="DUE",
+                status="COD",
                 method="COD"
         )
     else:

@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 from app.db.db import get_db
-from app.db.models import Seller,Product,OrderItems
+from app.db.models import Seller,Product,OrderItems,Payment,Order
 from fastapi import BackgroundTasks
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
@@ -249,21 +249,37 @@ def get_seller_order(request: Request,
     db: Session = Depends(get_db),seller: Seller = Depends(get_current_seller)):
     
     orderitems = (
-    db.query(OrderItems, Product)
+    db.query(OrderItems, Product, Order)
     .join(Product, Product.id == OrderItems.product_id)
+    .join(Order, Order.id == OrderItems.order_id)
     .filter(OrderItems.seller_id == seller.id)
     .order_by(OrderItems.id.desc())
     .all()
 )
 
 
-    grouped_orders = defaultdict(list)
+    grouped_orders = {}
 
-    for item, product in orderitems:
-        grouped_orders[item.order_id].append({
-        "item": item,
-        "product": product
-    })
+    for item, product, order in orderitems:
+
+        if order.id not in grouped_orders:
+            payment = (
+                db.query(Payment)
+                .filter(Payment.order_id == order.id)
+                .order_by(Payment.created_at.desc())
+                .first()
+            )
+
+            grouped_orders[order.id] = {
+                "order": order,
+                "payment_status": payment.status,
+                "items": []
+            }
+
+        grouped_orders[order.id]["items"].append({
+            "item": item,
+            "product": product
+        })
 
     return templates.TemplateResponse(
     "seller_orders.html",
@@ -289,8 +305,8 @@ def seller_order_item_action(
         raise HTTPException(404, "Order item not found")
 
     valid_transitions = {
-        "PLACED": ["ACCEPT", "CANCEL"],
-        "ACCEPTED": ["SHIP", "CANCEL"],
+        "PLACED": ["CONFIRM", "CANCEL"],
+        "CONFIRMED": ["SHIP", "CANCEL"],
         "SHIPPED": ["DELIVER"],
     }
 
@@ -304,8 +320,8 @@ def seller_order_item_action(
         raise HTTPException(400, "Invalid action for this status")
 
     
-    if action == "ACCEPT":
-        item.status = "ACCEPTED"
+    if action == "CONFIRM":
+        item.status = "CONFIRMED"
     elif action == "SHIP":
         item.status = "SHIPPED"
     elif action == "DELIVER":

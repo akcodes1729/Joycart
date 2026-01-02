@@ -53,17 +53,16 @@
     }
 
     .status.placed { background: orange; }
-    .status.accepted { background: teal; }
+    .status.confirmed { background: teal; }
     .status.shipped { background: purple; }
     .status.delivered { background: darkgreen; }
     .status.cancelled { background: red; }
 
-    /* DETAILS */
     .item-details p {
       margin: 4px 0;
     }
 
-    /* ACTIONS */
+    
     .actions {
       margin-top: auto;
       display: flex;
@@ -79,7 +78,7 @@
       color: #fff;
     }
 
-    .btn-accept { background: #007bff; }
+    .btn-confirm { background: #007bff; }
     .btn-cancel { background: #dc3545; }
     .btn-ship { background: #6f42c1; }
     .btn-deliver { background: #28a745; }
@@ -91,16 +90,21 @@
     <h2>Seller Orders</h2>
     <a href="/seller/dashboard">← Seller Dashboard</a>
 
-    {% for order_id, rows in grouped_orders.items() %}
+    {% for order_id, order in grouped_orders.items() %}
+
       <div class="order-card">
         <h3>Order ID: {{ order_id }}</h3>
-
+        <p><strong>Payment:</strong> {{ order.payment_status }}</p>
+        
         <div class="items-grid">
-          {% for row in rows %}
+          
+          {% for row in order["items"] %}
+
             {% set item = row.item %}
             {% set product = row.product %}
 
             <div class="item-card">
+              
 
               <div class="status {{ item.status|lower }}">
                 {{ item.status }}
@@ -119,8 +123,8 @@
               <div class="actions">
                 {% if item.status|upper == "PLACED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
-                    <input type="hidden" name="action" value="ACCEPT">
-                    <button class="btn-accept">Accept</button>
+                    <input type="hidden" name="action" value="CONFIRM">
+                    <button class="btn-confirm">Confirm</button>
                   </form>
 
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
@@ -129,7 +133,7 @@
                   </form>
                 {% endif %}
 
-                {% if item.status|upper == "ACCEPTED" %}
+                {% if item.status|upper == "CONFIRMED" %}
                   <form method="post" action="/seller/order-item/{{ item.id }}/action">
                     <input type="hidden" name="action" value="SHIP">
                     <button class="btn-ship">Ship</button>
