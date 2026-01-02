@@ -256,6 +256,19 @@ def get_seller_order(request: Request,
     .order_by(OrderItems.id.desc())
     .all()
 )
+    order_ids = {order.id for _, _, order in orderitems}
+
+    payments = (
+    db.query(Payment)
+    .filter(Payment.order_id.in_(order_ids))
+    .order_by(Payment.created_at.desc())
+    .all()
+)
+    payment_map = {}
+
+    for payment in payments:
+        if payment.order_id not in payment_map:
+            payment_map[payment.order_id] = payment
 
 
     grouped_orders = {}
@@ -263,16 +276,11 @@ def get_seller_order(request: Request,
     for item, product, order in orderitems:
 
         if order.id not in grouped_orders:
-            payment = (
-                db.query(Payment)
-                .filter(Payment.order_id == order.id)
-                .order_by(Payment.created_at.desc())
-                .first()
-            )
+            payment = payment_map.get(order.id)
 
             grouped_orders[order.id] = {
-                "order": order,
-                "payment_status": payment.status,
+                "payment_status": payment.status if payment else "NOT_PAID",
+                "payment_method": payment.method if payment else "UNKNOWN",
                 "items": []
             }
 
