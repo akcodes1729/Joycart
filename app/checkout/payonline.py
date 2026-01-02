@@ -4,8 +4,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.db.db import get_db
 import os,uuid,hmac,hashlib
-from app.db.models import Checkout
+from app.db.models import Checkout,User
 from app.checkout.helper import helper
+from app.db.models import User
+from app.auth import get_current_user
 
 
 
@@ -97,6 +99,7 @@ def payment_webhook(request:Request,
     signature: str = Form(...),
     gateway_payment_id: str = Form(...),
     method:str =Form(...),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     
