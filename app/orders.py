@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException,Request
 from sqlalchemy.orm import Session
 from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
-from app.db.models import Order, OrderItems, Product,Payment, User
+from app.db.models import Order, OrderItems, Product,Payment, User,Refund
 from app.auth import get_current_user
 from sqlalchemy.exc import SQLAlchemyError
+
 
 
 router = APIRouter()
@@ -191,51 +192,66 @@ def cancel_order_item(request:Request,
 
 
 
+
+
 def refund_entire_order(order, db):
-    payment = (
-        db.query(Payment)
-        .filter(Payment.order_id == order.id)
-        .with_for_update()
-        .first()
-    )
-
-    if not payment or payment.status != "SUCCESS":
-        return
-
-    payment.amount = 0
-    payment.status = "REFUNDED"
-    order.status = "REFUNDED"
-
-def refund_order_item(item, db):
-
     try:
-        order = db.query(Order).filter(
-            Order.id == item.order_id
-        ).first()
+        payment = (
+            db.query(Payment)
+            .filter(
+                Payment.order_id == order.id,
+                Payment.status == "SUCCESS"
+            )
+            .with_for_update()
+            .first()
+        )
 
-        payment = db.query(Payment).filter(
-            Payment.order_id == order.id
-        ).with_for_update().first()
-
-        if not payment or payment.status != "SUCCESS":
-            return  
-        
-        refund_amount = item.price_at_purchase * item.quantity
-
-        
-        if payment.amount < refund_amount:
+        if not payment:
             return
 
-        payment.amount -= refund_amount
+        
+        refund = Refund(
+            payment_id=payment.id,
+            amount=payment.amount,
+            reason="ORDER_CANCELLED"
+        )
 
-        if payment.amount == 0:
-            payment.status = "REFUNDED"
-            order.status = "REFUNDED"
-        else:
-            payment.status = "PARTIALLY_REFUNDED"
+        db.add(refund)
+
+        
+        payment.status = "REFUNDED"
+        order.status = "REFUNDED"
+
     except SQLAlchemyError:
         db.rollback()
-        raise HTTPException(500, "Refund failed")
+        raise HTTPException(500, "Failed to refund order")
+
+def refund_order_item(item, db):
+    try:
+        payment = (
+            db.query(Payment)
+            .filter(
+                Payment.order_id == item.order_id,
+                Payment.status == "SUCCESS"
+            )
+            .with_for_update()
+            .first()
+        )
+
+        if not payment:
+            return
+
+        refund = Refund(
+            payment_id=payment.id,
+            amount=item.price_at_purchase * item.quantity,
+            reason="ITEM_CANCELLED"
+        )
+
+        db.add(refund)
+    
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(500, "Failed to refund ")
 
 def restore_stock_for_item(item, db):
     product = db.query(Product).filter(

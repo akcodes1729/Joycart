@@ -170,7 +170,14 @@ class Payment(Base):
     gateway_payment_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+class Refund(Base):
+    __tablename__ = "refunds"
 
+    id = Column(Integer, primary_key=True)
+    payment_id = Column(Integer, ForeignKey("payments.id"))
+    amount = Column(Integer)
+    reason = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class Review(Base):
     __tablename__ = 'reviews'
