@@ -22,7 +22,8 @@ from app.checkout.payonline import router as prepaid_router
 from app.checkout.payonline import pages_router as prepaid_pages_router
 from app.orders import router as order_router
 from app.orders import pages_router as order_pages_router
-
+from app.reviews import router as review_router
+from app.reviews import pages_router as review_pages_router
 
 
 Base.metadata.create_all(bind = engine)
@@ -47,6 +48,10 @@ app.include_router(prepaid_router,prefix="/api",dependencies=[Depends(get_curren
 app.include_router(prepaid_pages_router,dependencies=[Depends(get_current_user)])
 app.include_router(order_router,prefix="/api/orders",dependencies=[Depends(get_current_user)])
 app.include_router(order_pages_router, dependencies=[Depends(get_current_user)])
+app.include_router(review_router,prefix ="/api",dependencies=[Depends(get_current_user)])
+app.include_router(review_pages_router,dependencies=[Depends(get_current_user)])
+
+
 
 
 templates = Jinja2Templates(directory="templates")

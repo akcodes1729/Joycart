@@ -119,13 +119,12 @@
                 {{ item.status }}
               </div>
 
-              <img src="{{ product.thumbnail }}" alt="{{ product.title }}">
+              <a href="/products/{{product.id}}"><img src="{{ product.thumbnail }}" alt="{{ product.title }}"></a>
 
               <div class="item-details">
                 <p><strong>{{ product.title }}</strong></p>
                 <p>₹{{ item.price_at_purchase }}</p>
                 <p>Qty: {{ item.quantity }}</p>
-                <a href="/products/{{ item.product_id }}">View</a>
                 <br></br>
               </div>
 

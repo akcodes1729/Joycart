@@ -32,7 +32,7 @@ async function loadOrder() {
             
     `;
 
-    if (["PLACED", "ACCEPTED"].includes(item.status)) {
+    if (["PLACED", "CONFIRMED"].includes(item.status)) {
         itemHtml += `
             <button onclick="cancelItem(${item.item_id})">
                 Cancel Item

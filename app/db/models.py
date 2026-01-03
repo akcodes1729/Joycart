@@ -183,14 +183,13 @@ class Review(Base):
     __tablename__ = 'reviews'
 
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('products.id')) # The Link
-    rating = Column(Float)
-    comment = Column(String)
+    product_id = Column(Integer, ForeignKey('products.id'))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(String, nullable=True)
     date = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    reviewerName = Column(String)
     product = relationship("Product", back_populates="reviews")
-
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 

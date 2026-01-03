@@ -1,4 +1,3 @@
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,6 +91,42 @@
         .add-to-cart button:hover {
             background: #2980b9;
         }
+        .rating-summary {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .review {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        .review-rating {
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        .review-form select,
+        .review-form textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 6px;
+        }
+
+        .review-form button {
+            padding: 8px 12px;
+            background: #2ecc71;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .review-message {
+            font-size: 14px;
+            margin-top: 8px;
+            color: red;
+        }
     </style>
 </head>
 
@@ -171,14 +206,45 @@
         </div>
 
     </div>
+    <div class="section-title">Customer Reviews</div>
+
+    <div class="rating-summary" id="rating-summary">
+        Loading rating...
+    </div>
+
+    <div id="reviews-list">
+        Loading reviews...
+    </div>
+
+    
+    <div class="section-title">Write a Review</div>
+
+    <div class="review-form">
+        <select id="rating">
+            <option value="">Select rating</option>
+            <option value="5">★★★★★ (5)</option>
+            <option value="4">★★★★☆ (4)</option>
+            <option value="3">★★★☆☆ (3)</option>
+            <option value="2">★★☆☆☆ (2)</option>
+            <option value="1">★☆☆☆☆ (1)</option>
+        </select>
+
+        <textarea id="comment" rows="3" placeholder="Write your review (optional)"></textarea>
+
+        <button onclick="submitReview()">Submit Review</button>
+
+        <div class="review-message" id="review-message"></div>
+    </div>
 
 {% else %}
     <h2>Product not found</h2>
 {% endif %}
-
 </div>
-<script src = '/static/js/addtocart.js'></script>
-<script src = '/static/js/buynow.js'></script>
+
+<script src="/static/js/reviews.js"></script>
+<script src="/static/js/addtocart.js"></script>
+<script src="/static/js/buynow.js"></script>
+
 
 </body>
 </html>
