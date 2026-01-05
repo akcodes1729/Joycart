@@ -33,12 +33,15 @@ async function loadOrder() {
     `;
     let displayStatus = item.status;
     
-if (item.status === "CANCELLED") {
+if (item.status === "CANCELLED" && order.payment.status == "PENDING") {
+    displayStatus = "NO REFUND SINCE IT IS A COD ORDER";
+    itemHtml += `<p><b>Refund Status:</b> ${displayStatus}</p>`;
+} if (item.status === "CANCELLED" && order.payment.status == "SUCCESS" ) {
     displayStatus = "REFUNDED";
-    itemHtml += `
-    <p><b>Refund Status:</b> ${displayStatus}</p>
-`;
+    itemHtml += `<p><b>Refund Status:</b> ${displayStatus}</p>`;
 }
+
+
 
     if (["PLACED", "CONFIRMED"].includes(item.status)) {
         itemHtml += `

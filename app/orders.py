@@ -145,42 +145,6 @@ def cancel_order_item(request:Request,
         db.rollback()
         raise HTTPException(500, "Failed to cancel order")
 
-
-
-
-
-def refund_entire_order(order, db):
-    try:
-        payment = (
-            db.query(Payment)
-            .filter(
-                Payment.order_id == order.id,
-                Payment.status == "SUCCESS"
-            )
-            .with_for_update()
-            .first()
-        )
-
-        if not payment:
-            return
-
-        
-        refund = Refund(
-            payment_id=payment.id,
-            amount=payment.amount,
-            reason="ORDER_CANCELLED",
-            status="REFUNDED",
-            orderitem_id=None
-        )
-
-        db.add(refund)
-
-        order.status = "REFUNDED"
-
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(500, "Failed to refund order")
-
 def refund_order_item(item, db):
     try:
         payment = (
