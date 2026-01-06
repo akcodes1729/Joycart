@@ -7,6 +7,7 @@ from app.db.models import Cart,Product,Checkout,Address,CheckoutItem,User,Order,
 from datetime import datetime
 import uuid, razorpay ,os,hmac,hashlib,json
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import or_
 from app.checkout.helper import helper
 from app.auth import get_current_user
 
@@ -84,7 +85,8 @@ def start_checkout(
             checkout_id=str(uuid.uuid4()),
             user_id=current_user.id,
             amount=total_amount,
-            mode="CART"
+            mode="CART",
+            status="CREATED"
         )
 
         db.add(checkout)
@@ -135,7 +137,8 @@ def buy_now(
             checkout_id=str(uuid.uuid4()),
             user_id=current_user.id,
             amount=product.price * quantity,
-            mode="BUY NOW"
+            mode="BUY NOW",
+            status="CREATED"
         )
 
         db.add(checkout)
@@ -173,6 +176,7 @@ def checkout_address_page(
     db: Session = Depends(get_db)
 ):
     
+    lazy_cleanup_checkouts(db)
 
     checkout = db.query(Checkout).filter(
         Checkout.checkout_id == checkout_id,
@@ -241,6 +245,8 @@ def checkout_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    lazy_cleanup_checkouts(db)
+
     checkout = db.query(Checkout).filter(
         Checkout.checkout_id == checkout_id,
         Checkout.user_id == current_user.id
@@ -288,7 +294,7 @@ def checkout_payment_page(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    
+    lazy_cleanup_checkouts(db)
     
     checkout = db.query(Checkout).filter(
         Checkout.checkout_id == checkout_id,
@@ -361,6 +367,8 @@ def create_payonline_checkout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    lazy_cleanup_checkouts(db)
+
     checkout = db.query(Checkout).filter(
         Checkout.checkout_id == checkout_id,
         Checkout.user_id == current_user.id
@@ -413,7 +421,8 @@ async def razorpay_webhook(
     ).hexdigest()
 
     if not hmac.compare_digest(signature, expected):
-        raise HTTPException(403, "Invalid webhook")
+        return {"status": "ignored"}
+
 
     payload = json.loads(body)
     payment = payload["payload"]["payment"]["entity"]
@@ -470,14 +479,18 @@ def lazy_cleanup_checkouts(db):
     now = datetime.utcnow()
 
     expired_checkouts = db.query(Checkout).filter(
-        Checkout.expires_at < now
+        Checkout.expires_at < now,
+        or_(
+            Checkout.status.is_(None),
+            Checkout.status != "COMPLETED"
+        )
     ).all()
 
     for checkout in expired_checkouts:
         
         db.query(CheckoutItem).filter(
             CheckoutItem.checkout_id == checkout.id
-        ).delete()
+        ).delete(synchronize_session=False)
 
         
         db.delete(checkout)

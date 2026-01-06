@@ -58,6 +58,10 @@ def helper(current_user, db, checkout_id, method, razorpay_payment_id):
                     status="PLACED"
                 )
             )
+            if not order_items:
+                print("⚠️ Order created with no items, should refund")
+                return
+
 
         order = Order(
             user_id=current_user.id,
@@ -86,7 +90,7 @@ def helper(current_user, db, checkout_id, method, razorpay_payment_id):
             order_id=order.id,
             amount=order.amount,
             status="SUCCESS",
-            method=method,
+            method = method.upper(),
             gateway_payment_id=razorpay_payment_id
         )
             
@@ -99,7 +103,7 @@ def helper(current_user, db, checkout_id, method, razorpay_payment_id):
         
         db.query(CheckoutItem).filter(
             CheckoutItem.checkout_id == checkout.id
-        ).delete()
+        ).delete(synchronize_session=False)
 
         db.delete(checkout)
 

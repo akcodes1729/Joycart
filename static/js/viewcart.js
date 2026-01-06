@@ -25,7 +25,7 @@ async function loadCart() {
     data.items.forEach(item => {
         itemsHtml += `
             <div class="item">
-                <img src="${item.thumbnail}" alt="">
+                <a href = "/products/${item.product_id}"><img src="${item.thumbnail}" alt=""></a>
                 <div>
                     <h4>${item.title}</h4>
                     <p>Price: ₹ ${item.price}</p>
