@@ -57,7 +57,7 @@ class Product(Base):
     title = Column(String)
     description = Column(String)
     category = Column(String)
-    price = Column(Float)
+    price = Column(Numeric(10, 2))
     discountPercentage = Column(Float)
     rating = Column(Float)
     stock = Column(Integer)
@@ -85,7 +85,7 @@ class Checkout(Base):
 
     shipping_address = Column(JSON, nullable=True)
 
-    amount = Column(Integer, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
 
     status = Column(String,default="CREATED",nullable=False)
 
@@ -124,7 +124,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     checkout_id = Column(String, unique=True, nullable=False)
-    amount = Column(Float, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String, nullable=False)
     currency = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -139,7 +139,7 @@ class OrderItems(Base):
     seller_id = Column(Integer, ForeignKey("sellers.id"),nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
-    price_at_purchase = Column(Float, nullable=False)
+    price_at_purchase = Column(Numeric(10, 2), nullable=False)
     status = Column(String, default="PLACED",nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -169,7 +169,7 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    amount = Column(Float, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String, nullable=False) # success | failed
     method = Column(String, nullable=False)
     gateway_payment_id = Column(String, nullable=True)
@@ -181,7 +181,7 @@ class Refund(Base):
     id = Column(Integer, primary_key=True)
     payment_id = Column(Integer, ForeignKey("payments.id"))
     orderitem_id = Column(Integer, ForeignKey("order_items.id"))
-    amount = Column(Integer)
+    amount = Column(Numeric(10, 2))
     reason = Column(String)
     status = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
