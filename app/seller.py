@@ -336,7 +336,7 @@ def delete_product(
     db: Session = Depends(get_db)):
     
     product = db.query(Product).filter(Product.seller_id == current_seller.id,
-                                       Product.id == product_id)
+                                       Product.id == product_id).first()
     
     if not product:
         raise HTTPException(
@@ -345,7 +345,9 @@ def delete_product(
         )
     
     db.delete(product)
-    db.commit
+    db.commit()
+
+    return RedirectResponse("/seller/products", status_code=302)
 
 def populate_products(db: Session, seller_id: int):
 
