@@ -4,7 +4,9 @@ from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.db.models import Order, OrderItems, Product,Payment, User,Refund
 from app.auth import get_current_user
-from sqlalchemy.exc import SQLAlchemyError
+from app.checkout.checkout import razorpay_client 
+from decimal import Decimal, ROUND_HALF_UP
+
 
 
 
@@ -47,17 +49,24 @@ def get_single_order(request: Request,
         "status": order.status,
         "created_at": order.created_at,
         "items": [
-            {   "item_id":oi.id,
-                "product_id": product.id,
-                "title": product.title,
-                "price": oi.price_at_purchase,
-                "quantity": oi.quantity,
-                "status": oi.status,
-                "subtotal": f"{(oi.price_at_purchase * oi.quantity):.2f}",
-                "thumbnail":product.thumbnail
-            }
-            for oi, product in items
-        ],
+    {
+        "item_id": oi.id,
+        "product_id": product.id,
+        "title": product.title,
+        "price": oi.price_at_purchase,
+        "quantity": oi.quantity,
+        "status": oi.status,
+        "refund_status": (
+            db.query(Refund.status)
+            .filter(Refund.orderitem_id == oi.id)
+            .order_by(Refund.created_at.desc())
+            .scalar()
+        ),
+        "subtotal": f"{(oi.price_at_purchase * oi.quantity):.2f}",
+        "thumbnail": product.thumbnail
+    }
+    for oi, product in items
+],
         "payment": None
     }
 
@@ -75,6 +84,7 @@ def get_single_order(request: Request,
             "status": payment.status,
             "gateway_id": payment.gateway_payment_id
         }
+    
 
     return data
 
@@ -105,12 +115,12 @@ def order_detail_page(request: Request):
 
 #######################################CANCEL AND REFUND ORDERS###################################
 @router.post("/item/{item_id}/cancel")
-def cancel_order_item(request:Request,
+def cancel_order_item(
+    request: Request,
     item_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    
     try:
         item = (
             db.query(OrderItems)
@@ -125,59 +135,83 @@ def cancel_order_item(request:Request,
         if not item:
             raise HTTPException(404)
 
-        if item.status not in ["PLACED", "CONFIRMED"]:
-            raise HTTPException(
-                400,
-                "This item cannot be cancelled"
-            )
-        
-        restore_stock_for_item(item, db)
+        if item.status == "CANCELLED":
+            return {"message": "Item already cancelled"}
 
-        refund_order_item(item, db)
+        if item.status not in ["PLACED", "CONFIRMED"]:
+            raise HTTPException(400, "This item cannot be cancelled")
+
+        restore_stock_for_item(item, db)
 
         item.status = "CANCELLED"
 
-        db.commit()
+        refund = create_refund_record(item, db)
+
+        db.commit()   
+
+        initiate_razorpay_refund(refund, db)
 
         return {"message": "Item cancelled"}
-    
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(500, "Failed to cancel order")
 
-def refund_order_item(item, db):
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, str(e))
+
+def create_refund_record(item, db):
+    payment = (
+        db.query(Payment)
+        .filter(
+            Payment.order_id == item.order_id,
+            Payment.status == "SUCCESS"
+        )
+        .first()
+    )
+
+    if not payment:
+        return None
+
+    refund = Refund(
+        payment_id=payment.id,
+        gateway_payment_id=payment.gateway_payment_id,
+        amount=item.price_at_purchase * item.quantity,
+        reason="ITEM_CANCELLED",
+        status="INITIATED",
+        orderitem_id=item.id
+    )
+
+    db.add(refund)
+    return refund
+
+def initiate_razorpay_refund(refund, db):
+    if not refund:
+        return
+
     try:
-        payment = (
-            db.query(Payment)
-            .filter(
-                Payment.order_id == item.order_id,
-                Payment.status == "SUCCESS"
-            )
-            .with_for_update()
-            .first()
+        amount_paise = int(
+            (refund.amount * Decimal("100"))
+            .quantize(Decimal("1"), rounding=ROUND_HALF_UP)
         )
 
-        if not payment:
-            return
-
-        refund = Refund(
-            payment_id=payment.id,
-            amount=item.price_at_purchase * item.quantity,
-            reason="ITEM_CANCELLED",
-            status="REFUNDED",
-            orderitem_id=item.id
+        razorpay_refund = razorpay_client.payment.refund(
+            refund.gateway_payment_id,
+            {
+                "amount": amount_paise,
+                "notes": {"order_item_id": refund.orderitem_id}
+            }
         )
 
-        db.add(refund)
-    
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(500, "Failed to refund ")
+        refund.gateway_refund_id = razorpay_refund["id"]
+        db.commit()
+
+    except Exception as e:
+        refund.status = "FAILED"
+        db.commit()
+        raise
 
 def restore_stock_for_item(item, db):
     product = db.query(Product).filter(
         Product.id == item.product_id
-    ).with_for_update().first()
+    ).first()
 
     if not product:
         return

@@ -11,7 +11,7 @@ from cloudinary.utils import cloudinary_url
 import json,os
 from decimal import Decimal
 from app.auth import get_current_seller,get_current_user
-from app.orders import restore_stock_for_item,refund_order_item
+from app.orders import restore_stock_for_item,create_refund_record,initiate_razorpay_refund
 from app.db.models import User
 
 
@@ -547,11 +547,14 @@ def seller_order_item_action(
 
             restore_stock_for_item(item, db)
 
-            refund_order_item(item, db)
-            
             item.status = "CANCELLED"
+            
+            refund = create_refund_record(item, db)
 
         db.commit()
+
+        if action == "CANCEL":
+            initiate_razorpay_refund(refund, db)
 
         return RedirectResponse(
             "/seller/orders",

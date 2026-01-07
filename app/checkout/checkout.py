@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.db.db import get_db
-from app.db.models import Cart,Product,Checkout,Address,CheckoutItem,User,Order,CartItem
+from app.db.models import Cart,Product,Checkout,Address,CheckoutItem,User,Order,CartItem,Refund
 from datetime import datetime
 import uuid, razorpay ,os,hmac,hashlib,json
 from sqlalchemy.exc import SQLAlchemyError
@@ -426,44 +426,72 @@ async def razorpay_webhook(
     if not hmac.compare_digest(signature, expected):
         return {"status": "ignored"}
 
-
     payload = json.loads(body)
-    payment = payload["payload"]["payment"]["entity"]
+    event = payload.get("event")
 
-    razorpay_order_id = payment["order_id"]
-    razorpay_payment_id = payment["id"]
-    method = payment["method"]
+    
+    if event == "payment.captured":
+        payment = payload["payload"]["payment"]["entity"]
 
-    checkout = db.query(Checkout).filter(
-        Checkout.gateway_order_id == razorpay_order_id
-    ).first()
+        razorpay_order_id = payment["order_id"]
+        razorpay_payment_id = payment["id"]
+        method = payment["method"]
 
-    if not checkout:
-        return {"status": "ignored"}
+        checkout = db.query(Checkout).filter(
+            Checkout.gateway_order_id == razorpay_order_id
+        ).first()
 
-    existing_order = db.query(Order).filter(
-        Order.checkout_id == checkout.checkout_id
-    ).first()
+        if not checkout:
+            return {"status": "ignored"}
 
-    if existing_order:
-        return {"status": "already_processed"}
+        existing_order = db.query(Order).filter(
+            Order.checkout_id == checkout.checkout_id
+        ).first()
 
-    user = db.query(User).filter(
-        User.id == checkout.user_id
-    ).first()
+        if existing_order:
+            return {"status": "already_processed"}
 
-    if not user:
-        return {"status": "ignored"}
+        user = db.query(User).filter(
+            User.id == checkout.user_id
+        ).first()
 
-    helper(
-        user,
-        db,
-        checkout.checkout_id,
-        method,
-        razorpay_payment_id
-    )
+        if not user:
+            return {"status": "ignored"}
 
-    return {"status": "ok"}
+        helper(
+            user,
+            db,
+            checkout.checkout_id,
+            method,
+            razorpay_payment_id
+        )
+
+        return {"status": "payment_processed"}
+
+    
+    if event in ("refund.processed", "refund.failed"):
+        refund_entity = payload["payload"]["refund"]["entity"]
+        razorpay_refund_id = refund_entity["id"]
+
+        refund = db.query(Refund).filter(
+            Refund.gateway_refund_id == razorpay_refund_id
+        ).first()
+
+        if not refund:
+            return {"status": "refund_not_found"}
+
+        refund.status = (
+            "REFUNDED" if event == "refund.processed" else "FAILED"
+        )
+
+        db.commit()
+        
+        return {"status": "refund_updated"}
+
+    return {"status": "ignored"}
+
+
+        
 
 
 @pages_router.get("/checkout/payonline/waiting")

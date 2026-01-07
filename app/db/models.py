@@ -184,6 +184,8 @@ class Refund(Base):
     amount = Column(Numeric(10, 2))
     reason = Column(String)
     status = Column(String)
+    gateway_payment_id = Column(String, nullable=False)
+    gateway_refund_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Review(Base):

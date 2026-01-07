@@ -36,9 +36,8 @@ async function loadOrder() {
 if (item.status === "CANCELLED" && order.payment.status == "PENDING") {
     displayStatus = "NO REFUND SINCE IT IS A COD ORDER";
     itemHtml += `<p><b>Refund Status:</b> ${displayStatus}</p>`;
-} if (item.status === "CANCELLED" && order.payment.status == "SUCCESS" ) {
-    displayStatus = "REFUNDED";
-    itemHtml += `<p><b>Refund Status:</b> ${displayStatus}</p>`;
+} if (item.status === "CANCELLED" && item.refund_status) {
+    itemHtml += `<p><b>Refund Status:</b> ${item.refund_status}</p>`;
 }
 
 
