@@ -62,7 +62,7 @@ class Product(Base):
     rating = Column(Float)
     stock = Column(Integer)
     brand = Column(String,nullable=True)
-    sku = Column(String)
+    sku = Column(String, unique=True, index=True)
     weight = Column(Integer)
     dimensions = Column(JSON, nullable=True)
     warrantyInformation = Column(String)

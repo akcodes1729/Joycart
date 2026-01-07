@@ -97,8 +97,6 @@ def seller_product_add(request: Request,seller: Seller = Depends(get_current_sel
 @router.post("/seller/product/create")
 def create_product(
     request: Request,
-
-    
     title: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
@@ -122,6 +120,7 @@ def create_product(
     db: Session = Depends(get_db),seller: Seller = Depends(get_current_seller)
 ):
     
+    
     thumb_result = cloudinary.uploader.upload(
         thumbnail.file,
         folder=f"products/{seller.id}/thumbnail"
@@ -137,8 +136,14 @@ def create_product(
     fetch_format="auto",
     quality="auto"
 )
+    existing = db.query(Product).filter(
+        Product.sku == sku,
+        Product.seller_id == seller.id
+    ).first()
 
-    
+    if existing:
+        raise HTTPException(400, "SKU already exists")
+        
     image_urls = [] 
     for img in images:
         result = cloudinary.uploader.upload(
@@ -158,14 +163,14 @@ def create_product(
         image_urls.append(url)
 
    
-    dimensions = None
-    if length or width or height:
+    if any(v is not None for v in (length, width, height)):
         dimensions = {
             "length": length,
             "width": width,
             "height": height
         }
-
+    else:
+        dimensions = None
    
     product = Product(
         seller_id=seller.id,
@@ -191,6 +196,156 @@ def create_product(
 
     return RedirectResponse("/seller/dashboard", status_code=302)
 
+@pages_router.get("/seller/products/edit/{product_id}")
+def edit_product_page(
+    request: Request,
+    product_id: int,
+    current_seller = Depends(get_current_seller),
+    db: Session = Depends(get_db)):
+
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.seller_id == current_seller.id
+    ).first()
+
+    if not product:
+        raise HTTPException(status_code=404,detail="Product not found")
+
+
+    return templates.TemplateResponse(
+        "seller_product_edit.html",{
+            "request":request,
+            "product":product}
+    )
+
+
+
+@router.post("/seller/products/editfn/{product_id}")
+def edit_product(
+    product_id :int,
+    title: str = Form(...),
+    description: str = Form(...),
+    category: str = Form(...),
+    sku: str = Form(...),
+    price: float = Form(...),
+    discountPercentage: float = Form(0),
+    stock: int = Form(...),
+    availabilityStatus: str = Form(...),
+    returnPolicy: str = Form(""),
+    weight: int = Form(None),
+    length: float = Form(None),
+    width: float = Form(None),
+    height: float = Form(None),
+    shippingInformation: str = Form(""),
+    warrantyInformation: str = Form(""),
+    thumbnail: UploadFile = File(None),
+    images: list[UploadFile] = File(None),
+    db: Session = Depends(get_db),seller: Seller = Depends(get_current_seller)
+    ):
+    
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.seller_id == seller.id
+    ).first()
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
+        )
+
+    if any(v is not None for v in (length, width, height)):
+        dimensions = {
+            "length": length,
+            "width": width,
+            "height": height
+        }
+    else:
+        dimensions = None
+
+    product.title =  title
+    product.description = description
+    product.category = category
+    product.sku = sku
+    product.price = price
+    product.discountPercentage = discountPercentage
+    product.stock = stock
+    product.availabilityStatus = availabilityStatus
+    product.returnPolicy = returnPolicy
+    product.weight = weight
+    product.dimensions = dimensions
+    product.shippingInformation = shippingInformation
+    product.warrantyInformation = warrantyInformation
+
+    if thumbnail and thumbnail.filename:
+
+        thumb_result = cloudinary.uploader.upload(
+            thumbnail.file,
+            folder=f"products/{seller.id}/thumbnail"
+        )
+
+        public_id = thumb_result["public_id"]
+        thumbnail_url, _ = cloudinary_url(
+            public_id,
+            width=300,
+            height=300,
+            crop="fill",
+            gravity="auto",
+            fetch_format="auto",
+            quality="auto"
+        )
+
+        product.thumbnail = thumbnail_url
+
+    if images:
+        image_urls = []
+        for img in images:
+
+            if not img or not img.filename:
+                continue
+            result = cloudinary.uploader.upload(
+                img.file,
+                folder=f"products/{seller.id}/images"
+            )
+            public_id = result["public_id"]
+            url, _ = cloudinary_url(
+                public_id,
+                width=1000,
+                height=1000,
+                crop="fill",
+                gravity="auto",
+                fetch_format="auto",
+                quality="auto"
+            )
+            image_urls.append(url)
+
+
+            product.images = image_urls
+
+
+
+    db.commit()
+
+    return RedirectResponse("/seller/products", status_code=302)
+    
+
+@router.post("/seller/products/delete/{product_id}")
+def delete_product(
+    product_id: int,
+    current_seller = Depends(get_current_seller),
+    db: Session = Depends(get_db)):
+    
+    product = db.query(Product).filter(Product.seller_id == current_seller.id,
+                                       Product.id == product_id)
+    
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
+        )
+    
+    db.delete(product)
+    db.commit
 
 def populate_products(db: Session, seller_id: int):
 

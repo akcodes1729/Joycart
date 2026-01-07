@@ -32,12 +32,44 @@
         .out {
             color: red;
         }
+        .card {
+            position: relative; 
+            transition: transform 0.2s; 
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stretched-link::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1; 
+        }    
     </style>
 </head>
 <body>
 
 <h2>Seller Products</h2>
 <a href = "/seller/dashboard">Dashboard</a><br></br>
-{% include "partials/products_grid.html" %}
+<div class="grid">
+    {% for p in products %}
+        <div class="card">
+    <a href="/products/{{ p.id }}"><img src="{{ p.thumbnail }}" loading="lazy" alt="{{ p.title }}"></a>
+    <h4>{{ p.title }}</h4>
+    <div class="price">₹{{ p.price }}</div>
+    <a href="/seller/products/edit/{{ p.id }}">
+    <button>Edit</button></a>
+    <form action="/seller/products/delete/{{ p.id }}" method="post">
+    <button>Delete</button></form>
+    
+</div>
+    {% endfor %}
+</div>
+
 </body>
 </html>

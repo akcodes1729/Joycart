@@ -225,6 +225,7 @@ def edit_address(
     address.city = city
     address.state = state
     address.pincode = pincode
+    
     db.commit()
 
     return RedirectResponse("/address", status_code=302)
