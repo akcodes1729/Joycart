@@ -1,5 +1,4 @@
-#own
-from fastapi import FastAPI, Request, Depends,HTTPException
+from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse

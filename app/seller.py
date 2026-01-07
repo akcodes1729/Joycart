@@ -233,7 +233,7 @@ def edit_product_page(
 
 
 
-# file: seller_products.py
+
 
 @router.post("/seller/products/editfn/{product_id}")
 def edit_product(
