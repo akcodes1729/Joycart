@@ -28,20 +28,8 @@ def product_page(
     )
 
 def list_products(db: Session = Depends(get_db)):
-    return db.query(Product).order_by(Product.id.desc()).all()
+    return db.query(Product).order_by(Product.id.asc()).all()
     
-@router.get("/products")
-def get_products(db: Session = Depends(get_db)):
-    products = db.query(Product).all()
-
-    return [
-        {
-            "id": p.id,
-            "title": p.title,
-            "price": p.price
-        }
-        for p in products
-    ]
 
 
 

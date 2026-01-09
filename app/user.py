@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.auth import hash_password, verify_password, create_access_token,get_current_user
-from app.db.models import User, Address,Order
+from app.db.models import User, Address,Seller
 from app.product import list_products
 
 
@@ -108,17 +108,37 @@ def logout():
 
 ##########################DASHBOARD AND PROFILE###############################
 
+# file: user.py (or wherever /home is)
+
 @pages_router.get("/home", dependencies=[Depends(get_current_user)])
-def dashboard(
+def home(
     request: Request,
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     products = list_products(db)
 
+    if current_user.is_seller:
+        seller = (
+            db.query(Seller)
+            .filter(Seller.user_id == current_user.id)
+            .first()
+        )
+
+        if seller:
+            products = [
+                p for p in products
+                if p.seller_id != seller.id
+            ]
+
     return templates.TemplateResponse(
         "home.html",
-        {"request": request, "products": products}
+        {
+            "request": request,
+            "products": products
+        }
     )
+
 
 
 @pages_router.get("/profile")
