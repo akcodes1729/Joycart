@@ -195,7 +195,8 @@ def checkout_address_page(
         {
             "request": request,
             "addresses": addresses,
-            "checkout_id": checkout_id
+            "checkout_id": checkout_id,
+            "current_user":current_user
         }
     )
 
@@ -268,7 +269,8 @@ def checkout_summary(
             "request": request,
             "checkout": checkout,
             "items": items,
-            "checkout_id": checkout_id
+            "checkout_id": checkout_id,
+            "current_user":current_user
         }
     )
 
