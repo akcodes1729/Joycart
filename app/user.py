@@ -76,7 +76,7 @@ def login_user( username: str = Form(...),
         "/home",
         status_code=302
     )
-
+    response.delete_cookie("access_token")
     response.set_cookie(
         key="access_token",
         value=token,
