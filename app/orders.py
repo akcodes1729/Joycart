@@ -147,6 +147,7 @@ def cancel_order_item(
     db: Session = Depends(get_db)
 ):
     try:
+        
         item = (
             db.query(OrderItems)
             .join(Order)
@@ -165,44 +166,58 @@ def cancel_order_item(
 
         if item.status not in ["PLACED", "CONFIRMED"]:
             raise HTTPException(400, "This item cannot be cancelled")
+        
+
+        payment = (
+        db.query(Payment)
+        .filter(
+            Payment.order_id == item.order_id
+        )
+        .first()
+    )
+        item.status = "CANCELLED"
 
         restore_stock_for_item(item, db)
 
-        item.status = "CANCELLED"
+        if payment and payment.method == "COD":
 
-        refund = create_refund_record(item, db)
-
-        db.commit()   
-
-        initiate_razorpay_refund(refund, db)
-
+                refund = Refund(
+                payment_id=payment.id,
+                amount=item.price_at_purchase * item.quantity,
+                reason="ITEM_CANCELLED",
+                status="NO_REFUND_FOR_COD_ORDERS",
+                orderitem_id=item.id
+            )
+                
+                db.add(refund)
+        
+        else:
+            refund = create_refund_record(item,payment,db)
+            db.flush()   
+            initiate_razorpay_refund(refund, db)
+        payment.status = "NOT_REQUIRED"
+        db.commit()
         return {"message": "Item cancelled"}
 
     except Exception as e:
         db.rollback()
         raise HTTPException(500, str(e))
 
-def create_refund_record(item, db):
-    payment = (
-        db.query(Payment)
-        .filter(
-            Payment.order_id == item.order_id,
-            Payment.status == "SUCCESS"
-        )
-        .first()
-    )
+def create_refund_record(item,payment,db):
 
     if not payment:
         return None
-
+    
+    
     refund = Refund(
-        payment_id=payment.id,
-        gateway_payment_id=payment.gateway_payment_id,
-        amount=item.price_at_purchase * item.quantity,
-        reason="ITEM_CANCELLED",
-        status="INITIATED",
-        orderitem_id=item.id
-    )
+            payment_id=payment.id,
+            gateway_payment_id=payment.gateway_payment_id,
+            amount=item.price_at_purchase * item.quantity,
+            reason="ITEM_CANCELLED",
+            status="INITIATED",
+            orderitem_id=item.id
+        )
+
 
     db.add(refund)
     return refund
@@ -226,11 +241,10 @@ def initiate_razorpay_refund(refund, db):
         )
 
         refund.gateway_refund_id = razorpay_refund["id"]
-        db.commit()
+        refund.status = "PROCESSING"
 
     except Exception as e:
         refund.status = "FAILED"
-        db.commit()
         raise
 
 def restore_stock_for_item(item, db):
@@ -242,3 +256,4 @@ def restore_stock_for_item(item, db):
         return
 
     product.stock += item.quantity
+

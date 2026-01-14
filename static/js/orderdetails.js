@@ -47,17 +47,18 @@ async function loadOrder() {
 
 
   document.getElementById("order-thumb").innerHTML = `
-    <img src="${item.thumbnail}" alt="${item.title}">
+    <a href = "/products/${item.product_id}"><img src="${item.thumbnail}" alt="${item.title}"></a>
   `;
 
 
-  document.getElementById("order-status").innerHTML = `
-    <div class="status-row">
-      <span class="status-dot"></span>
-      Order ${item.status}
-    </div>
-  `;
+const statusClass = item.status.toLowerCase();
 
+document.getElementById("order-status").innerHTML = `
+  <div class="status-row">
+    <span class="status-dot ${statusClass}"></span>
+    Order ${item.status}
+  </div>
+`;
 
   const actions = document.getElementById("order-actions");
   actions.innerHTML = "";
@@ -69,6 +70,10 @@ async function loadOrder() {
         Cancel Order
       </button>
     `;
+  }
+
+    if (["CANCELLED"].includes(item.status)) {
+    actions.innerHTML = `Refund Status : ${item.refund_status}`;
   }
 
 
@@ -119,7 +124,6 @@ async function confirmCancel() {
     method: "POST",
     credentials: "include",
   });
-
   if (!res.ok) {
     alert("Unable to cancel item");
     closeCancelConfirm();

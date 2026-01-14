@@ -1439,8 +1439,19 @@ a {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #16a34a;
 }
+.status-dot.delivered {
+  background: #16a34a; /* green */
+}
+
+.status-dot.processing {
+  background: #2563eb; /* blue */
+}
+
+.status-dot.cancelled {
+  background: #dc2626; /* red */
+}
+
 
 /* =========================
    FOOTER ACTIONS
@@ -1602,4 +1613,43 @@ a {
 
 .seller-register-card button {
   width: 100%;
+}
+@media (max-width: 768px) {
+
+  .order-item-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .order-info,
+  .order-price,
+  .order-meta {
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+}
+@media (max-width: 768px) {
+
+  .item-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .item-details {
+    min-width: unset;
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  .actions {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
 }
