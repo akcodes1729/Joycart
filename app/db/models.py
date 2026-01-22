@@ -122,7 +122,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     checkout_id = Column(String, unique=True, nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String, nullable=False)
@@ -135,9 +135,9 @@ class OrderItems(Base):
     __tablename__ = "order_items"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    seller_id = Column(Integer, ForeignKey("sellers.id"),nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
+    seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
     quantity = Column(Integer, nullable=False)
     price_at_purchase = Column(Numeric(10, 2), nullable=False)
     status = Column(String, default="PLACED",nullable=False)
@@ -168,7 +168,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
     amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String, nullable=False) # success | failed
     method = Column(String, nullable=False)
@@ -180,7 +180,7 @@ class Refund(Base):
 
     id = Column(Integer, primary_key=True)
     payment_id = Column(Integer, ForeignKey("payments.id"))
-    orderitem_id = Column(Integer, ForeignKey("order_items.id"))
+    orderitem_id = Column(Integer, ForeignKey("order_items.id"), index=True)
     amount = Column(Numeric(10, 2))
     reason = Column(String)
     status = Column(String)
