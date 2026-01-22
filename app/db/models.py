@@ -13,6 +13,8 @@ class User(Base):
     password = Column(String, nullable=False) 
     is_seller = Column(Boolean, default=False)
     seller_id = Column(Integer, unique=True, nullable=True)
+    role = Column(String, default="user")
+    is_blocked = Column(Boolean, default=False)
 
 class Address(Base):
     __tablename__ = "addresses"

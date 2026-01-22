@@ -58,6 +58,15 @@
       Seller Hub
     </a>
 
+    {% if current_user.role == "admin" %}
+  <a href="/admin/dashboard" class="dropdown-item">
+    <svg class="nav-icon" viewBox="0 0 24 24">
+      <path d="M12 2l9 4.9v10.2l-9 4.9-9-4.9v-10.2l9-4.9zm0 2.2l-7 3.8v8l7 3.8 7-3.8v-8l-7-3.8zm-3 5h6v2h-6v-2zm0 4h6v2h-6v-2z"/>
+    </svg>
+    Admin Dashboard
+  </a>
+{% endif %}
+
 
             <form action="/api/logout" method="post" class="dropdown-item logout-form">
               <button type="submit" class="btn-link">

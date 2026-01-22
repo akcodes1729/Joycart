@@ -65,6 +65,12 @@ def get_current_user(
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    
+    if user.is_blocked:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been blocked"
+        )
 
     request.state.user = user
     
@@ -98,3 +104,20 @@ def get_current_seller(
         raise HTTPException(status_code=403, detail="Seller not found")
 
     return seller
+
+def get_current_admin(
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access only"
+        )
+
+    if current_user.is_blocked:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin account is blocked"
+        )
+
+    return current_user

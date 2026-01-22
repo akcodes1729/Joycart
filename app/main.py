@@ -23,6 +23,7 @@ from app.orders import router as order_router
 from app.orders import pages_router as order_pages_router
 from app.reviews import router as review_router
 from app.reviews import pages_router as review_pages_router
+from app.admin import admin_router
 
 
 Base.metadata.create_all(bind = engine)
@@ -49,6 +50,7 @@ app.include_router(order_router,prefix="/api/orders",dependencies=[Depends(get_c
 app.include_router(order_pages_router, dependencies=[Depends(get_current_user)])
 app.include_router(review_router,prefix ="/api",dependencies=[Depends(get_current_user)])
 app.include_router(review_pages_router,dependencies=[Depends(get_current_user)])
+app.include_router(admin_router)
 
 
 

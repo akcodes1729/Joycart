@@ -34,7 +34,14 @@ def create_user(
         password=hash_password(password)
     )
 
+        
     db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    if user.id == 1:
+        user.role = "admin"
+
     db.commit()
 
     return RedirectResponse("/login", status_code=302)

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - JoyCart</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    select, button {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      cursor: pointer;
+      background: #eee;
+    }
+
+    .btn {
+      padding: 5px 8px;
+      font-size: 12px;
+      margin-right: 4px;
+    }
+
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-success { background: #2ecc71; color: white; }
+    .btn-warning { background: #f39c12; color: white; }
+
+    .pagination {
+      margin-top: 15px;
+    }
+
+    .pagination button {
+      margin-right: 5px;
+      padding: 5px 10px;
+    }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .home-link {
+    text-decoration: none;
+    background: #3498db;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .home-link:hover {
+    background: #2980b9;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Admin Dashboard</h1>
+
+  <a href="/home" class="home-link">
+    Home
+  </a>
+</div>
+
+<!-- FILTERS -->
+<div class="controls">
+  <select id="filterRole">
+    <option value="all">All Users</option>
+    <option value="admin">Admins</option>
+    <option value="user">Normal Users</option>
+  </select>
+
+  <select id="filterBlocked">
+    <option value="all">All Status</option>
+    <option value="blocked">Blocked</option>
+    <option value="active">Active</option>
+  </select>
+</div>
+
+<!-- USERS TABLE -->
+<table>
+  <thead>
+    <tr>
+      <th onclick="sortBy('id')">ID</th>
+      <th onclick="sortBy('username')">Username</th>
+      <th onclick="sortBy('email')">Email</th>
+      <th onclick="sortBy('role')">Role</th>
+      <th onclick="sortBy('is_blocked')">Blocked</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="usersTable"></tbody>
+</table>
+
+<!-- PAGINATION -->
+<div class="pagination">
+  <button onclick="prevPage()">Prev</button>
+  <span id="pageInfo"></span>
+  <button onclick="nextPage()">Next</button>
+</div>
+
+<script src="/static/js/admin.js"></script>
+</body>
+</html>
