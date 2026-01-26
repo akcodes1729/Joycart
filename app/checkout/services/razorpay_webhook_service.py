@@ -54,7 +54,7 @@ def handle_payment_captured(
         db=db,
         checkout_id=checkout.checkout_id,
         method=method,
-        gateway_payment_id=razorpay_payment_id
+        razorpay_payment_id=razorpay_payment_id
     )
 
     return {"status": "payment_processed"}
