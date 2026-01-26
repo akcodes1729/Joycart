@@ -6,13 +6,12 @@ from app.product import list_products
 REDIS_URL = os.getenv("REDIS_URL")
 CACHE_KEY = os.getenv("CACHE_KEY")
 
-redis_client = redis.Redis.from_url(
-    REDIS_URL,
-    decode_responses=True
-)
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
 
 def set_cache(key: str, value, ttl: int = 60):
     redis_client.setex(key, ttl, json.dumps(value))
+
 
 def get_cache(key: str):
     data = redis_client.get(key)
@@ -27,8 +26,8 @@ def product_to_dict(product):
         "title": product.title,
         "price": float(product.price),
         "thumbnail": product.thumbnail,
-        "discountPercentage":product.discountPercentage,
-        "seller_id": product.seller_id
+        "discountPercentage": product.discountPercentage,
+        "seller_id": product.seller_id,
     }
 
 

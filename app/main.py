@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from app.auth import get_current_user
-from app.db.db import Base, engine,get_db
+from app.db.db import Base, engine, get_db
 from app.redis import get_all_products_cached
 from app.user.routers.user_router import router as user_router
 from app.user.routers.user_router import pages_router as user_pages_router
@@ -16,7 +16,9 @@ from app.cart.routers.cart_router import pages_router as cart_pages_router
 from app.product import router as product_router
 from app.checkout.routers.checkout_router import router as checkout_router
 from app.checkout.routers.checkout_router import pages_router as checkout_pages_router
-from app.checkout.routers.razorpay_webhook_router import router as razorpay_webhook_router
+from app.checkout.routers.razorpay_webhook_router import (
+    router as razorpay_webhook_router,
+)
 from app.checkout.routers.cod_router import router as cod_router
 from app.checkout.routers.cod_router import pages_router as cod_pages_router
 from app.orders.routers.orders_router import router as order_router
@@ -25,43 +27,46 @@ from app.reviews.routers.reviews_router import router as review_router
 from app.reviews.routers.reviews_router import pages_router as review_pages_router
 from app.admin.routers.admin_router import router as admin_router
 
-
-Base.metadata.create_all(bind = engine)
+Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
 
-app.mount('/static',  StaticFiles(directory='static'), name = 'static')
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(user_router, prefix="/api")
 app.include_router(user_pages_router)
-app.include_router(seller_router,dependencies=[Depends(get_current_user)])
-app.include_router(seller_pages_router,dependencies=[Depends(get_current_user)])
-app.include_router(cloudinary_router,dependencies=[Depends(get_current_user)] )
-app.include_router(cart_router,prefix="/api/cart",dependencies=[Depends(get_current_user)])
-app.include_router(cart_pages_router,dependencies=[Depends(get_current_user)])
+app.include_router(seller_router, dependencies=[Depends(get_current_user)])
+app.include_router(seller_pages_router, dependencies=[Depends(get_current_user)])
+app.include_router(cloudinary_router, dependencies=[Depends(get_current_user)])
+app.include_router(
+    cart_router, prefix="/api/cart", dependencies=[Depends(get_current_user)]
+)
+app.include_router(cart_pages_router, dependencies=[Depends(get_current_user)])
 app.include_router(product_router)
-app.include_router(checkout_router,prefix="/api",dependencies=[Depends(get_current_user)])
-app.include_router(checkout_pages_router,dependencies=[Depends(get_current_user)])
+app.include_router(
+    checkout_router, prefix="/api", dependencies=[Depends(get_current_user)]
+)
+app.include_router(checkout_pages_router, dependencies=[Depends(get_current_user)])
 app.include_router(razorpay_webhook_router)
-app.include_router(cod_router,prefix="/api",dependencies=[Depends(get_current_user)])
-app.include_router(cod_pages_router,dependencies=[Depends(get_current_user)])
-app.include_router(order_router,prefix="/api/orders",dependencies=[Depends(get_current_user)])
+app.include_router(cod_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(cod_pages_router, dependencies=[Depends(get_current_user)])
+app.include_router(
+    order_router, prefix="/api/orders", dependencies=[Depends(get_current_user)]
+)
 app.include_router(order_pages_router, dependencies=[Depends(get_current_user)])
-app.include_router(review_router,prefix ="/api",dependencies=[Depends(get_current_user)])
-app.include_router(review_pages_router,dependencies=[Depends(get_current_user)])
+app.include_router(
+    review_router, prefix="/api", dependencies=[Depends(get_current_user)]
+)
+app.include_router(review_pages_router, dependencies=[Depends(get_current_user)])
 app.include_router(admin_router)
-
-
 
 
 templates = Jinja2Templates(directory="templates")
 
+
 @app.get("/")
-def joycart(
-    request: Request,
-    db: Session = Depends(get_db)
-):
+def joycart(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token")
 
     if token:
@@ -70,21 +75,15 @@ def joycart(
     products = get_all_products_cached(db)
 
     return templates.TemplateResponse(
-        "joycart.html",
-        {"request": request,
-        "products": products,
-        "current_user": None}
+        "joycart.html", {"request": request, "products": products, "current_user": None}
     )
-    
-@app.get("/favicon.ico")#added to remove favicon error
+
+
+@app.get("/favicon.ico")  # added to remove favicon error
 def favicon():
     return ""
+
 
 @app.get("/google2e117fe9b726070f.html")
 def google_verify():
     return FileResponse("google2e117fe9b726070f.html")
-
-
-
-
-

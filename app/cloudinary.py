@@ -7,8 +7,9 @@ cloudinary.config(
     cloud_name=os.getenv("CLOUD_NAME"),
     api_key=os.getenv("API_KEY"),
     api_secret=os.getenv("API_SECRET"),
-    secure=True
+    secure=True,
 )
+
 
 @router.get("/cloudinary/sign")
 def sign_upload(folder: str):
@@ -19,10 +20,7 @@ def sign_upload(folder: str):
         "folder": folder,
     }
 
-    signature = cloudinary.utils.api_sign_request(
-        params,
-        os.getenv("API_SECRET")
-    )
+    signature = cloudinary.utils.api_sign_request(params, os.getenv("API_SECRET"))
 
     return {
         "timestamp": timestamp,

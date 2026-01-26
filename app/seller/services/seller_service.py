@@ -1,15 +1,17 @@
-from app.db.models import Seller,Product,Payment,Order,OrderItems
+from app.db.models import Seller, Product, Payment, Order, OrderItems
 from sqlalchemy.orm import Session
 import json
 from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
-from app.orders.services.orders_service import restore_stock_for_item,initiate_razorpay_refund,create_refund_record
+from app.orders.services.orders_service import (
+    restore_stock_for_item,
+    initiate_razorpay_refund,
+    create_refund_record,
+)
 
-def register_seller(background_tasks,store_name,current_user,db):
-    seller = Seller(
-        user_id=current_user.id,
-        store_name=store_name
-    )
+
+def register_seller(background_tasks, store_name, current_user, db):
+    seller = Seller(user_id=current_user.id, store_name=store_name)
     current_user.is_seller = True
 
     db.add(seller)
@@ -19,14 +21,15 @@ def register_seller(background_tasks,store_name,current_user,db):
     current_user.seller_id = seller.id
 
     if seller.id == 1 or seller.id == 2:
-        
+
         background_tasks.add_task(populate_products, db, seller.id)
-    
+
     return seller
+
 
 def populate_products(db: Session, seller_id: int):
 
-    if seller_id ==1:
+    if seller_id == 1:
         file = "products1.json"
     else:
         file = "products2.json"
@@ -37,7 +40,6 @@ def populate_products(db: Session, seller_id: int):
     for item in data.get("products", []):
         product = Product(
             seller_id=seller_id,
-
             title=item.get("title"),
             description=item.get("description"),
             category=item.get("category"),
@@ -61,13 +63,34 @@ def populate_products(db: Session, seller_id: int):
 
     db.commit()
 
-def create_product(title,description,category,sku,price,discountPercentage,stock,availabilityStatus,returnPolicy,weight,
-    length,width,height,shippingInformation,warrantyInformation,thumbnail,images,db,seller):
 
-    existing = db.query(Product).filter(
-        Product.sku == sku,
-        Product.seller_id == seller.id
-    ).first()
+def create_product(
+    title,
+    description,
+    category,
+    sku,
+    price,
+    discountPercentage,
+    stock,
+    availabilityStatus,
+    returnPolicy,
+    weight,
+    length,
+    width,
+    height,
+    shippingInformation,
+    warrantyInformation,
+    thumbnail,
+    images,
+    db,
+    seller,
+):
+
+    existing = (
+        db.query(Product)
+        .filter(Product.sku == sku, Product.seller_id == seller.id)
+        .first()
+    )
     if existing:
         raise HTTPException(400, "SKU already exists")
 
@@ -99,18 +122,39 @@ def create_product(title,description,category,sku,price,discountPercentage,stock
     db.add(product)
     db.commit()
 
-def edit_product(product_id,title,description,category,sku,price,discountPercentage,stock,availabilityStatus,
-    returnPolicy,weight,length,width,height,shippingInformation,warrantyInformation,thumbnail,images,db,seller):
 
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.seller_id == seller.id
-    ).first()
+def edit_product(
+    product_id,
+    title,
+    description,
+    category,
+    sku,
+    price,
+    discountPercentage,
+    stock,
+    availabilityStatus,
+    returnPolicy,
+    weight,
+    length,
+    width,
+    height,
+    shippingInformation,
+    warrantyInformation,
+    thumbnail,
+    images,
+    db,
+    seller,
+):
+
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.seller_id == seller.id)
+        .first()
+    )
 
     if not product:
         raise HTTPException(404, "Product not found")
 
-    
     if thumbnail:
         product.thumbnail = thumbnail
 
@@ -138,14 +182,12 @@ def edit_product(product_id,title,description,category,sku,price,discountPercent
 
     db.commit()
 
+
 def delete_product(product_id, current_seller, db):
 
     product = (
         db.query(Product)
-        .filter(
-            Product.id == product_id,
-            Product.seller_id == current_seller.id
-        )
+        .filter(Product.id == product_id, Product.seller_id == current_seller.id)
         .first()
     )
 
@@ -157,15 +199,14 @@ def delete_product(product_id, current_seller, db):
         .filter(
             OrderItems.product_id == product.id,
             OrderItems.seller_id == current_seller.id,
-            OrderItems.status != "CANCELLED"
+            OrderItems.status != "CANCELLED",
         )
         .first()
     )
 
     if active_order_exists:
         raise HTTPException(
-            status_code=400,
-            detail="Cannot delete product with active orders"
+            status_code=400, detail="Cannot delete product with active orders"
         )
 
     db.delete(product)
@@ -173,30 +214,30 @@ def delete_product(product_id, current_seller, db):
 
     return {"message": "Product deleted successfully"}
 
-def seller_orders(db,seller):
+
+def seller_orders(db, seller):
 
     orderitems = (
-    db.query(OrderItems, Product, Order)
-    .join(Product, Product.id == OrderItems.product_id)
-    .join(Order, Order.id == OrderItems.order_id)
-    .filter(OrderItems.seller_id == seller.id)
-    .order_by(OrderItems.id.desc())
-    .all()
-)
+        db.query(OrderItems, Product, Order)
+        .join(Product, Product.id == OrderItems.product_id)
+        .join(Order, Order.id == OrderItems.order_id)
+        .filter(OrderItems.seller_id == seller.id)
+        .order_by(OrderItems.id.desc())
+        .all()
+    )
     order_ids = {order.id for _, _, order in orderitems}
 
     payments = (
-    db.query(Payment)
-    .filter(Payment.order_id.in_(order_ids))
-    .order_by(Payment.created_at.desc())
-    .all()
-)
+        db.query(Payment)
+        .filter(Payment.order_id.in_(order_ids))
+        .order_by(Payment.created_at.desc())
+        .all()
+    )
     payment_map = {}
 
     for payment in payments:
         if payment.order_id not in payment_map:
             payment_map[payment.order_id] = payment
-
 
     grouped_orders = {}
 
@@ -206,29 +247,23 @@ def seller_orders(db,seller):
             payment = payment_map.get(order.id)
 
             grouped_orders[order.id] = {
-                "payment_status": payment.status  if payment else "N/A",
-                "items": []
+                "payment_status": payment.status if payment else "N/A",
+                "items": [],
             }
 
-        grouped_orders[order.id]["items"].append({
-            "item": item,
-            "product": product
-        })
+        grouped_orders[order.id]["items"].append({"item": item, "product": product})
 
     return grouped_orders
 
-def order_item_action(item_id,action,seller,db):
-    refund = None 
-    
+
+def order_item_action(item_id, action, seller, db):
+    refund = None
 
     try:
         item = (
             db.query(OrderItems)
             .join(Order)
-            .filter(
-                OrderItems.id == item_id,
-                OrderItems.seller_id == seller.id
-            )
+            .filter(OrderItems.id == item_id, OrderItems.seller_id == seller.id)
             .first()
         )
 
@@ -264,13 +299,11 @@ def order_item_action(item_id,action,seller,db):
         elif action == "CANCEL":
             if item.status in ["SHIPPED", "DELIVERED"]:
                 raise HTTPException(400, "Cannot cancel shipped item")
-            
+
             payment = (
-                        db.query(Payment)
-                        .filter(Payment.order_id == item.order_id)
-                        .first()
-                    )
-            
+                db.query(Payment).filter(Payment.order_id == item.order_id).first()
+            )
+
             restore_stock_for_item(item, db)
             item.status = "CANCELLED"
             if payment and payment.method == "COD":
@@ -278,16 +311,15 @@ def order_item_action(item_id,action,seller,db):
             elif payment:
                 refund = create_refund_record(item, payment, db)
 
-        db.commit()  
+        db.commit()
 
         if refund:
-            initiate_razorpay_refund(refund,db)  
+            initiate_razorpay_refund(refund, db)
 
         return RedirectResponse("/seller/orders", status_code=302)
 
-    except Exception as e:  
+    except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500,
-            detail=f"Database / gateway error: {str(e)}"
+            status_code=500, detail=f"Database / gateway error: {str(e)}"
         )

@@ -14,26 +14,18 @@ def product_page(
     request: Request,
     product_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user_optional)
+    current_user=Depends(get_current_user_optional),
 ):
     product = db.query(Product).filter(Product.id == product_id).first()
-    
+
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     return templates.TemplateResponse(
         "product.html",
-        {
-            "request": request,
-            "product": product,
-            "current_user": current_user
-        }
+        {"request": request, "product": product, "current_user": current_user},
     )
+
 
 def list_products(db: Session = Depends(get_db)):
     return db.query(Product).order_by(Product.id.asc()).all()
-    
-
-
-
-
