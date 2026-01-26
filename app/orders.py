@@ -4,7 +4,7 @@ from app.db.db import get_db
 from fastapi.templating import Jinja2Templates
 from app.db.models import Order, OrderItems, Product,Payment, User,Refund
 from app.auth import get_current_user
-from app.checkout.checkout import razorpay_client 
+from app.checkout.services.checkout_services import razorpay_client 
 from decimal import Decimal, ROUND_HALF_UP
 
 
@@ -285,7 +285,7 @@ def create_refund_record(item,payment,db):
     db.add(refund)
     return refund
 
-def initiate_razorpay_refund(refund, db):
+def initiate_razorpay_refund(refund):
     if not refund:
         return
 

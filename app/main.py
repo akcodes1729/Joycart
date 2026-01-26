@@ -14,11 +14,11 @@ from app.cloudinary import router as cloudinary_router
 from app.cart import router as cart_router
 from app.cart import pages_router as cart_pages_router
 from app.product import router as product_router
-from app.checkout.checkout import router as checkout_router
-from app.checkout.checkout import pages_router as checkout_pages_router
-from app.checkout.checkout import razorpay_router as checkout_razorpay_router
-from app.checkout.cod import router as cod_router
-from app.checkout.cod import pages_router as cod_pages_router
+from app.checkout.routers.checkout_router import router as checkout_router
+from app.checkout.routers.checkout_router import pages_router as checkout_pages_router
+from app.checkout.routers.razorpay_webhook_router import router as razorpay_webhook_router
+from app.checkout.routers.cod_router import router as cod_router
+from app.checkout.routers.cod_router import pages_router as cod_pages_router
 from app.orders import router as order_router
 from app.orders import pages_router as order_pages_router
 from app.reviews import router as review_router
@@ -43,7 +43,7 @@ app.include_router(cart_pages_router,dependencies=[Depends(get_current_user)])
 app.include_router(product_router)
 app.include_router(checkout_router,prefix="/api",dependencies=[Depends(get_current_user)])
 app.include_router(checkout_pages_router,dependencies=[Depends(get_current_user)])
-app.include_router(checkout_razorpay_router)
+app.include_router(razorpay_webhook_router)
 app.include_router(cod_router,prefix="/api",dependencies=[Depends(get_current_user)])
 app.include_router(cod_pages_router,dependencies=[Depends(get_current_user)])
 app.include_router(order_router,prefix="/api/orders",dependencies=[Depends(get_current_user)])

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.db.db import get_db
-from app.checkout.helper import helper
+from app.checkout.services.checkout_services import place_order
 from app.db.models import User
 from app.auth import get_current_user
 
@@ -38,7 +38,7 @@ def place_cod_order(
 
     method = "COD"
 
-    helper(current_user,db,checkout_id,method,None)
+    place_order(current_user,db,checkout_id,method,None)
 
     return RedirectResponse(
         "/checkout/cod/success",
