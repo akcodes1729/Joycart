@@ -258,6 +258,7 @@ def seller_orders(db, seller):
 
 def order_item_action(item_id, action, seller, db):
     refund = None
+    payment = None
 
     try:
         item = (
@@ -295,6 +296,13 @@ def order_item_action(item_id, action, seller, db):
 
         elif action == "DELIVER":
             item.status = "DELIVERED"
+            payment = (
+        db.query(Payment)
+        .filter(Payment.order_id == item.order_id)
+        .first()
+    )
+        if payment and payment.method == "COD":
+            payment.status = "PAID"
 
         elif action == "CANCEL":
             if item.status in ["SHIPPED", "DELIVERED"]:
