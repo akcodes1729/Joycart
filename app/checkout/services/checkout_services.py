@@ -344,6 +344,7 @@ def place_order(current_user, db, checkout_id, method, razorpay_payment_id):
                 db.query(CartItem).filter(CartItem.cart_id == cart.id).delete(
                     synchronize_session=False
                 )
+                
 
             elif checkout.mode == "BUY_NOW":
                 
