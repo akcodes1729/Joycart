@@ -6,7 +6,7 @@ JoyCart is a **production‑style e‑commerce backend** built using **FastAPI**
 
 ## 🚀 Live Deployment
 
-**URL:** [https://joycart.onrender.com]
+**URL:** https://joycart-production.up.railway.app/
 
 The application is deployed on Render and uses:
 
