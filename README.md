@@ -8,7 +8,7 @@ JoyCart is a **production‑style e‑commerce backend** built using **FastAPI**
 
 **URL:** https://joycart-production.up.railway.app/
 
-The application is deployed on Render and uses:
+The application is deployed on Railway and uses:
 
 * PostgreSQL (production DB)
 * Redis (caching)
